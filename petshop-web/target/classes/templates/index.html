@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pet Shop</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="tag">Conectado ao backend</span>
+      <h1>Pet Shop</h1>
+      <p>Cadastre pets e gerencie agendamentos pelo painel.</p>
+    </div>
+    <a class="btn btn-ghost" th:href="@{/}">↻ Atualizar</a>
+  </header>
+
+  <div class="status-offline" th:if="${offline}">
+    <strong>Backend indisponível.</strong>
+    <span th:text="${offline}"> Suba o Eureka, os microsserviços, o Gateway (8080) e tente de novo.</span>
+  </div>
+
+  <div class="alert alert-erro" th:if="${erro}" th:text="${erro}"></div>
+  <div class="alert alert-ok" th:if="${sucesso}" th:text="${sucesso}"></div>
+
+  <section class="grid">
+    <!-- PETS -->
+    <article class="panel" id="pets">
+      <div class="panel-title">
+        <h2>🐾 Pets</h2>
+        <span class="badge" th:text="${#lists.size(pets)} + ' cadastrados'">0</span>
+      </div>
+
+      <div class="form-box" id="form-pet">
+        <span class="form-title" th:text="${petForm.id != null} ? 'Editar pet' : 'Novo pet'">Novo pet</span>
+        <form th:action="@{/pets}" th:object="${petForm}" method="post">
+          <input type="hidden" th:field="*{id}"/>
+          <div class="field">
+            <label for="pet-nome">Nome</label>
+            <input id="pet-nome" th:field="*{nome}" placeholder="Ex.: Rex" required/>
+            <p class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+          </div>
+          <div class="field">
+            <label for="pet-raca">Raça</label>
+            <input id="pet-raca" th:field="*{raca}" placeholder="Ex.: Labrador" required/>
+            <p class="field-error" th:if="${#fields.hasErrors('raca')}" th:errors="*{raca}"></p>
+          </div>
+          <div class="field">
+            <label for="pet-dono">Dono</label>
+            <input id="pet-dono" th:field="*{nomeDono}" placeholder="Nome do tutor" required/>
+            <p class="field-error" th:if="${#fields.hasErrors('nomeDono')}" th:errors="*{nomeDono}"></p>
+          </div>
+          <div class="field">
+            <label for="pet-visitas">Visitas</label>
+            <input id="pet-visitas" type="number" min="0" th:field="*{quantidadeVisitas}"/>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit"
+                    th:text="${petForm.id != null} ? 'Salvar alterações' : 'Cadastrar pet'">Cadastrar pet</button>
+            <a class="btn btn-ghost" th:if="${petForm.id != null}" th:href="@{/}">Cancelar</a>
+          </div>
+        </form>
+      </div>
+
+      <p class="empty" th:if="${#lists.isEmpty(pets)}">Nenhum pet ainda. Cadastre o primeiro acima.</p>
+      <ul class="list" th:if="${!#lists.isEmpty(pets)}">
+        <li class="item" th:each="pet : ${pets}">
+          <strong th:text="${pet.nome}">Nome</strong>
+          <p th:text="${pet.raca} + ' · Tutor: ' + ${pet.nomeDono}">Info</p>
+          <p th:text="'Visitas: ' + ${pet.quantidadeVisitas}">Visitas</p>
+          <div class="item-actions">
+            <a class="btn btn-ghost" th:href="@{/pets/{id}/editar(id=${pet.id})}">Editar</a>
+            <form th:action="@{/pets/{id}/excluir(id=${pet.id})}" method="post"
+                  onsubmit="return confirm('Remover este pet?');">
+              <button class="btn btn-danger" type="submit">Excluir</button>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </article>
+
+    <!-- AGENDAMENTOS -->
+    <article class="panel" id="agendamentos">
+      <div class="panel-title">
+        <h2>📅 Agendamentos</h2>
+        <span class="badge" th:text="${#lists.size(agendamentos)} + ' ativos'">0</span>
+      </div>
+
+      <div class="form-box" id="form-agendamento">
+        <span class="form-title"
+              th:text="${agendamentoForm.id != null} ? 'Editar agendamento' : 'Novo agendamento'">Novo agendamento</span>
+        <form th:action="@{/agendamentos}" th:object="${agendamentoForm}" method="post">
+          <input type="hidden" th:field="*{id}"/>
+          <div class="field">
+            <label for="ag-data">Data e hora</label>
+            <input id="ag-data" type="datetime-local" th:field="*{data}" required/>
+            <p class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+          </div>
+          <div class="field">
+            <label for="ag-servico">Serviço</label>
+            <input id="ag-servico" th:field="*{tipoServico}" placeholder="Banho, tosa, consulta..." required/>
+            <p class="field-error" th:if="${#fields.hasErrors('tipoServico')}" th:errors="*{tipoServico}"></p>
+          </div>
+          <div class="field">
+            <label for="ag-pet">Pet</label>
+            <select id="ag-pet" th:field="*{petId}" required>
+              <option value="">Escolha um pet</option>
+              <option th:each="pet : ${pets}"
+                      th:value="${pet.id}"
+                      th:text="${pet.nome + ' (' + pet.raca + ')'}"></option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('petId')}" th:errors="*{petId}"></p>
+            <p class="field-error" th:if="${#lists.isEmpty(pets)}">Cadastre um pet antes de agendar.</p>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit"
+                    th:text="${agendamentoForm.id != null} ? 'Salvar alterações' : 'Criar agendamento'}"
+                    th:disabled="${#lists.isEmpty(pets)}">Criar agendamento</button>
+            <a class="btn btn-ghost" th:if="${agendamentoForm.id != null}" th:href="@{/}">Cancelar</a>
+          </div>
+        </form>
+      </div>
+
+      <p class="empty" th:if="${#lists.isEmpty(agendamentos)}">Nenhum agendamento. Crie um novo acima.</p>
+      <ul class="list" th:if="${!#lists.isEmpty(agendamentos)}">
+        <li class="item" th:each="ag : ${agendamentos}">
+          <strong th:text="${ag.tipoServico}">Serviço</strong>
+          <p th:text="${#temporals.format(ag.data, 'dd/MM/yyyy HH:mm')}">Data</p>
+          <p>Pet: <span th:text="${petNomes.get(ag.petId) != null ? petNomes.get(ag.petId) : ag.petId}">—</span></p>
+          <div class="item-actions">
+            <a class="btn btn-ghost" th:href="@{/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
+            <form th:action="@{/agendamentos/{id}/cancelar(id=${ag.id})}" method="post"
+                  onsubmit="return confirm('Cancelar este agendamento?');">
+              <button class="btn btn-danger" type="submit">Cancelar</button>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </article>
+  </section>
+</div>
+</body>
+</html>

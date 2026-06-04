@@ -1,0 +1,12 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: petshop-web
+  thymeleaf:
+    cache: false
+
+petshop:
+  gateway:
+    base-url: http://localhost:8080

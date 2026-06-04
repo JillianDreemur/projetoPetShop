@@ -1,18 +1,9 @@
+# PostgreSQL: use instalação local (porta 5432). Scripts em database/
+# RabbitMQ: opcional via Docker se não tiver instalado localmente.
+
 version: '3.9'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: petshop-postgres
-    environment:
-      POSTGRES_DB: petshop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 5555
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: petshop-rabbitmq
@@ -26,5 +17,4 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
-  postgres_data:
   rabbitmq_data:

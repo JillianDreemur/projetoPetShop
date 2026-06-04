@@ -5,12 +5,13 @@ spring:
   application:
     name: service-pets
   datasource:
-    url: jdbc:postgresql://localhost:5433/petshop
-    username: postgres
+    url: jdbc:postgresql://localhost:5432/petshop
+    username: postgre
     password: 5555
   jpa:
     hibernate:
       ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
