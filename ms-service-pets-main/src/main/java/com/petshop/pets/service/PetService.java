@@ -46,9 +46,9 @@ public class PetService {
         petRepository.deleteById(id);
     }
 
-    public void incrementarVisitas(UUID petId) {
+    public Pet incrementarVisitas(UUID petId) {
         Pet pet = buscarPorId(petId);
         pet.setQuantidadeVisitas((pet.getQuantidadeVisitas() == null ? 0 : pet.getQuantidadeVisitas()) + 1);
-        petRepository.save(pet);
+        return petRepository.save(pet);
     }
 }

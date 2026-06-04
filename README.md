@@ -1,21 +1,22 @@
 # Pet Shop — Microsserviços
 
-Projeto com Eureka, Gateway, microsserviços de **Pets** e **Agendamentos**, frontend **Thymeleaf** (`petshop-web`) e **PostgreSQL local** (sem Docker para o banco).
+Projeto com Eureka, Gateway, microsserviços de **Pets** e **Agendamentos**, frontend **Thymeleaf** (`petshop-web`) e **PostgreSQL local**.
+
+**Não usa Docker.** Só precisa de Java, Maven e PostgreSQL instalados na máquina.
 
 ## Pré-requisitos
 
 - Java 17+
 - Maven
 - PostgreSQL instalado localmente (porta **5432**)
-- RabbitMQ (local ou `docker compose up -d` só para o RabbitMQ)
 
 ### Credenciais PostgreSQL (configuradas no projeto)
 
 | Campo    | Valor    |
 |----------|----------|
-| Usuário  | `postgre` |
+| Usuário  | `postgre`|
 | Senha    | `5555`   |
-| Banco    | `petshop` |
+| Banco    | `petshop`|
 | Porta    | `5432`   |
 
 > Se a conexão falhar, confira no pgAdmin/psql se o usuário não é `postgres` (padrão do instalador). Nesse caso, altere `username` nos arquivos `application.yml` dos microsserviços.
@@ -42,15 +43,7 @@ Scripts manuais opcionais em `database/` (não são obrigatórios).
 
 Fluxo do painel: **Navegador (8090) → petshop-web → Gateway (8080) → microsserviço → PostgreSQL**.
 
-## 2. RabbitMQ (opcional via Docker)
-
-```powershell
-docker compose up -d
-```
-
-Isso sobe apenas o RabbitMQ. O PostgreSQL **não** usa mais Docker neste projeto.
-
-## 3. Subir os serviços (ordem sugerida)
+## 2. Subir os serviços (ordem sugerida)
 
 | Serviço              | Porta | Pasta                          |
 |----------------------|-------|--------------------------------|
@@ -66,7 +59,7 @@ Em cada pasta:
 mvn spring-boot:run
 ```
 
-## 4. Acessar o painel
+## 3. Acessar o painel
 
 Abra no navegador: **http://localhost:8090**
 

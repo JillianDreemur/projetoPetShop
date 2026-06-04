@@ -51,4 +51,9 @@ public class PetController {
         petService.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/visitas")
+    public ResponseEntity<Pet> incrementarVisitas(@PathVariable UUID id) {
+        return ResponseEntity.ok(petService.incrementarVisitas(id));
+    }
 }

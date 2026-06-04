@@ -1,6 +1,5 @@
 package com.petshop.agendamentos.service;
 
-import com.petshop.agendamentos.amqp.AgendamentoProducer;
 import com.petshop.agendamentos.client.PetClient;
 import com.petshop.agendamentos.entity.Agendamento;
 import com.petshop.agendamentos.repository.AgendamentoRepository;
@@ -15,14 +14,10 @@ public class AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
     private final PetClient petClient;
-    private final AgendamentoProducer agendamentoProducer;
 
-    public AgendamentoService(AgendamentoRepository agendamentoRepository,
-                              PetClient petClient,
-                              AgendamentoProducer agendamentoProducer) {
+    public AgendamentoService(AgendamentoRepository agendamentoRepository, PetClient petClient) {
         this.agendamentoRepository = agendamentoRepository;
         this.petClient = petClient;
-        this.agendamentoProducer = agendamentoProducer;
     }
 
     public Agendamento salvar(Agendamento agendamento) {
@@ -33,7 +28,12 @@ public class AgendamentoService {
         }
 
         Agendamento salvo = agendamentoRepository.save(agendamento);
-        agendamentoProducer.publicarPetConcluido(salvo.getPetId().toString());
+        try {
+            petClient.incrementarVisitas(salvo.getPetId());
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Agendamento salvo, mas não foi possível atualizar visitas do pet");
+        }
         return salvo;
     }
 
