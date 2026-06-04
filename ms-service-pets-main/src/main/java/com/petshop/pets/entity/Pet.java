@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.util.UUID;
 
@@ -20,14 +21,17 @@ public class Pet {
     private UUID id;
 
     @NotBlank
+    @Pattern(regexp = "^[\\p{L} ]+$", message = "Nome do pet: use apenas letras e espaços")
     @Column(nullable = false)
     private String nome;
 
     @NotBlank
+    @Pattern(regexp = "^[\\p{L} ]+$", message = "Raça: use apenas letras e espaços")
     @Column(nullable = false)
     private String raca;
 
     @NotBlank
+    @Pattern(regexp = "^[\\p{L} ]+$", message = "Tutor: use apenas letras e espaços")
     @Column(nullable = false)
     private String nomeDono;
 

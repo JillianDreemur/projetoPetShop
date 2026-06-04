@@ -19,6 +19,7 @@
   <div class="auth-error" th:if="${param.error}">Usuário ou senha incorretos.</div>
 
   <form th:action="@{/login}" method="post">
+    <th:block th:replace="~{fragments/csrf :: token}"/>
     <div class="auth-field">
       <label for="username">Usuário</label>
       <input id="username" name="username" type="text" required autofocus/>

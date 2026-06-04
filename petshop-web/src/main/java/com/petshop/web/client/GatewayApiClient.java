@@ -127,6 +127,47 @@ public class GatewayApiClient {
         return ex.getMessage() != null ? ex.getMessage() : "Erro ao comunicar com o gateway.";
     }
 
+    /** Mensagem curta para o cliente após falha em salvar (sem JDBC/SQL). */
+    public String mensagemOperacaoCliente(Exception ex) {
+        String msg = extrairMensagemErro(ex);
+        if (msg == null || msg.isBlank()) {
+            return "Não foi possível concluir. Verifique se os serviços estão ativos e tente de novo.";
+        }
+        String lower = msg.toLowerCase();
+        if (lower.contains("jdbc") || lower.contains("sql") || lower.contains("hibernate")
+                || lower.contains("eureka") || lower.contains("gateway") || lower.contains("coluna")) {
+            return "Não foi possível salvar agora. Tente novamente em alguns minutos.";
+        }
+        if (msg.length() <= 120) {
+            return msg;
+        }
+        return "Não foi possível concluir. Verifique os dados e tente de novo.";
+    }
+
+    /** Mensagem simples para o painel do cliente (sem detalhes técnicos). */
+    public String mensagemParaCliente(Exception ex) {
+        String tecnica = extrairMensagemErro(ex);
+        if (tecnica == null || tecnica.isBlank()) {
+            return "Não foi possível conectar ao sistema agora. Tente novamente em instantes.";
+        }
+        String lower = tecnica.toLowerCase();
+        if (lower.contains("jdbc")
+                || lower.contains("sql")
+                || lower.contains("coluna")
+                || lower.contains("erro:")
+                || lower.contains("hibernate")
+                || lower.contains("connection")
+                || lower.contains("eureka")
+                || lower.contains("gateway")
+                || lower.contains("microsserv")) {
+            return "Não foi possível carregar os dados agora. Tente novamente em alguns minutos.";
+        }
+        if (tecnica.length() > 120) {
+            return "Não foi possível concluir a operação. Verifique os dados e tente de novo.";
+        }
+        return tecnica;
+    }
+
     public PetDto toPetDto(PetForm form) {
         PetDto dto = new PetDto();
         dto.setNome(form.getNome());

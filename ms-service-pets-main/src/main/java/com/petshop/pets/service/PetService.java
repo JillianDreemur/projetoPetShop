@@ -18,6 +18,7 @@ public class PetService {
     }
 
     public Pet salvar(Pet pet) {
+        normalizarTextos(pet);
         validarPeso(pet.getPesoKg());
         return petRepository.save(pet);
     }
@@ -32,6 +33,7 @@ public class PetService {
     }
 
     public Pet atualizar(UUID id, Pet dados) {
+        normalizarTextos(dados);
         validarPeso(dados.getPesoKg());
         Pet pet = buscarPorId(id);
         pet.setNome(dados.getNome());
@@ -51,6 +53,18 @@ public class PetService {
     private void validarPeso(Double pesoKg) {
         if (pesoKg == null || pesoKg <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Peso deve ser maior que zero (kg)");
+        }
+    }
+
+    private void normalizarTextos(Pet pet) {
+        if (pet.getNome() != null) {
+            pet.setNome(pet.getNome().trim());
+        }
+        if (pet.getRaca() != null) {
+            pet.setRaca(pet.getRaca().trim());
+        }
+        if (pet.getNomeDono() != null) {
+            pet.setNomeDono(pet.getNomeDono().trim());
         }
     }
 }

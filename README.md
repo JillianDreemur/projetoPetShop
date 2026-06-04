@@ -73,10 +73,11 @@ mvn spring-boot:run
 | Visão geral | `/admin` |
 | Serviços | `/admin/servicos` |
 | Agendamentos | `/admin/agendamentos` |
-| Site público | `/` |
 | Sair | botão no menu |
 
 **Primeiro acesso:** `/registro` → nome, senha e chave **`5555`** → depois `/login`.
+
+Com o admin **logado**, qualquer acesso a `/`, `/pets` ou `/agendamentos` redireciona para `/admin`. Para usar o site do cliente, faça **Sair** no painel admin. Alertas de sistema/API (offline, JDBC, etc.) aparecem **somente** no painel admin.
 
 Microsserviços (para subir): Eureka `8761`, Gateway `8080`, Pets `8081`, Agendamentos `8082`.
 

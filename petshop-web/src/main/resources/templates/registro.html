@@ -17,6 +17,7 @@
   <div class="auth-error" th:if="${erro}" th:text="${erro}"></div>
 
   <form th:action="@{/registro}" th:object="${registerForm}" method="post">
+    <th:block th:replace="~{fragments/csrf :: token}"/>
     <div class="auth-field">
       <label for="nome">Usuário</label>
       <input id="nome" th:field="*{nome}" required/>

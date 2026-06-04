@@ -5,6 +5,7 @@ import com.petshop.web.dto.AgendamentoDto;
 import com.petshop.web.dto.AgendamentoForm;
 import com.petshop.web.dto.PetDto;
 import com.petshop.web.dto.PetForm;
+import com.petshop.web.service.CatalogoServicos;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +32,20 @@ public class HomeController {
 
     @GetMapping({"/", "/inicio"})
     public String inicio(Model model) {
-        return renderPagina(model, "inicio");
+        model.addAttribute("secao", "inicio");
+        model.addAttribute("servicos", CatalogoServicos.listarTodos());
+        return "index";
     }
 
     @GetMapping("/pets")
     public String paginaPets(Model model) {
-        return renderPagina(model, "pets");
+        return renderPaginaComApi(model, "pets");
     }
 
     @GetMapping("/agendamentos")
     public String paginaAgendamentos(Model model) {
-        return renderPagina(model, "agendamentos");
+        model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
+        return renderPaginaComApi(model, "agendamentos");
     }
 
     @PostMapping("/pets")
@@ -65,8 +69,8 @@ public class HomeController {
                 redirectAttributes.addFlashAttribute("sucesso", "Pet cadastrado com sucesso.");
             }
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
             redirectAttributes.addFlashAttribute("petForm", form);
+            redirectAttributes.addFlashAttribute("aviso", api.mensagemOperacaoCliente(ex));
         }
         return "redirect:/pets";
     }
@@ -82,8 +86,8 @@ public class HomeController {
             form.setNomeDono(pet.getNomeDono());
             form.setPesoKg(pet.getPesoKg());
             redirectAttributes.addFlashAttribute("petForm", form);
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        } catch (Exception ignored) {
+            // Falhas de API não são exibidas na área do cliente
         }
         return "redirect:/pets";
     }
@@ -99,8 +103,8 @@ public class HomeController {
         try {
             api.excluirPet(id);
             redirectAttributes.addFlashAttribute("sucesso", "Pet removido.");
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        } catch (Exception ignored) {
+            // Falhas de API não são exibidas na área do cliente
         }
         return "redirect:/pets";
     }
@@ -112,6 +116,7 @@ public class HomeController {
                                     RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("secao", "agendamentos");
+            model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
             prepararFormularios(model);
             carregarListas(model);
             return "index";
@@ -126,8 +131,8 @@ public class HomeController {
                 redirectAttributes.addFlashAttribute("sucesso", "Agendamento criado.");
             }
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
+            redirectAttributes.addFlashAttribute("aviso", api.mensagemOperacaoCliente(ex));
         }
         return "redirect:/agendamentos";
     }
@@ -142,8 +147,8 @@ public class HomeController {
             form.setTipoServico(ag.getTipoServico());
             form.setPetId(ag.getPetId());
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        } catch (Exception ignored) {
+            // Falhas de API não são exibidas na área do cliente
         }
         return "redirect:/agendamentos";
     }
@@ -159,16 +164,19 @@ public class HomeController {
         try {
             api.excluirAgendamento(id);
             redirectAttributes.addFlashAttribute("sucesso", "Agendamento cancelado.");
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        } catch (Exception ignored) {
+            // Falhas de API não são exibidas na área do cliente
         }
         return "redirect:/agendamentos";
     }
 
-    private String renderPagina(Model model, String secao) {
+    private String renderPaginaComApi(Model model, String secao) {
         model.addAttribute("secao", secao);
         prepararFormularios(model);
         carregarListas(model);
+        if ("agendamentos".equals(secao)) {
+            model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
+        }
         return "index";
     }
 
@@ -188,15 +196,10 @@ public class HomeController {
             model.addAttribute("pets", pets);
             model.addAttribute("agendamentos", agendamentos);
             model.addAttribute("petNomes", mapaNomesPets(pets));
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
             model.addAttribute("pets", List.of());
             model.addAttribute("agendamentos", List.of());
             model.addAttribute("petNomes", Map.of());
-            model.addAttribute("offline",
-                    "Verifique se Eureka, Gateway e os microsserviços estão rodando.");
-            if (!model.containsAttribute("erro")) {
-                model.addAttribute("erro", api.extrairMensagemErro(ex));
-            }
         }
     }
 

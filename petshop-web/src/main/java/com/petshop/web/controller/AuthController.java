@@ -1,6 +1,7 @@
 package com.petshop.web.controller;
 
 import com.petshop.web.dto.RegisterForm;
+import com.petshop.web.security.AdminSessionHelper;
 import com.petshop.web.service.AdminUsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -23,11 +24,17 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login() {
+        if (AdminSessionHelper.isAdminLogado()) {
+            return "redirect:/admin";
+        }
         return "login";
     }
 
     @GetMapping("/registro")
     public String registro(Model model) {
+        if (AdminSessionHelper.isAdminLogado()) {
+            return "redirect:/admin";
+        }
         if (!model.containsAttribute("registerForm")) {
             model.addAttribute("registerForm", new RegisterForm());
         }

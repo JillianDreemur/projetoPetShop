@@ -74,6 +74,7 @@
       <strong th:text="${agendamentoForm.id != null} ? '✏️ Editar' : '➕ Novo agendamento'"
               style="display:block;margin-bottom:12px"></strong>
       <form th:action="@{/admin/agendamentos}" th:object="${agendamentoForm}" method="post">
+        <th:block th:replace="~{fragments/csrf :: token}"/>
         <input type="hidden" th:field="*{id}"/>
         <div class="adm-form-grid">
           <div class="adm-field">
@@ -128,6 +129,7 @@
               <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
               <form th:action="@{/admin/agendamentos/{id}/excluir(id=${ag.id})}" method="post"
                     onsubmit="return confirm('Excluir agendamento?');">
+                <th:block th:replace="~{fragments/csrf :: token}"/>
                 <button class="adm-btn adm-btn-danger adm-btn-sm" type="submit">Excluir</button>
               </form>
             </div>
