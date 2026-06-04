@@ -22,7 +22,7 @@ public class StatusController {
                   a{color:#0d9488;font-weight:600;}
                 </style></head><body><div class="box">
                 <h1>✓ Petshop Web — FUNCIONANDO</h1>
-                <p><strong>Porta:</strong> 8090</p>
+                <p><strong>Porta:</strong> 8091</p>
                 <p><a href="/">Ir para o painel completo →</a></p>
                 </div></body></html>
                 """;

@@ -27,7 +27,7 @@ public class GatewayStatusConfig {
                 <h1>✓ Gateway — FUNCIONANDO</h1>
                 <p><strong>Porta:</strong> 8080</p>
                 <p>Rotas: <code>/pets</code>, <code>/agendamentos</code></p>
-                <p>Painel web: <a href="http://localhost:8090">http://localhost:8090</a></p>
+                <p>Painel web: <a href="http://localhost:8091">http://localhost:8091</a></p>
                 </div></body></html>
                 """;
         return route(GET("/"), req -> ServerResponse.ok()

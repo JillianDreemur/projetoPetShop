@@ -37,7 +37,7 @@ As tabelas `pets` e `agendamentos` são criadas/atualizadas automaticamente pelo
 - `/pets/**` → microsserviço de Pets
 - `/agendamentos/**` → microsserviço de Agendamentos
 
-Fluxo: **Navegador (8090) → petshop-web → Gateway (8080) → microsserviço → PostgreSQL**.
+Fluxo: **Navegador (8091) → petshop-web → Gateway (8080) → microsserviço → PostgreSQL**.
 
 ## 2. Subir os serviços (ordem sugerida)
 
@@ -47,7 +47,7 @@ Fluxo: **Navegador (8090) → petshop-web → Gateway (8080) → microsserviço 
 | service-pets         | 8081  | `ms-service-pets-main`         |
 | service-agendamentos | 8082  | `ms-service-agendamentos-main` |
 | Gateway              | 8080  | `gateway`                      |
-| Frontend Thymeleaf   | 8090  | `petshop-web`                  |
+| Frontend Thymeleaf   | 8091  | `petshop-web`                  |
 
 Em cada pasta:
 
@@ -57,7 +57,7 @@ mvn spring-boot:run
 
 ## 3. Acessar o painel
 
-Abra no navegador: **http://localhost:8090**
+Abra no navegador: **http://localhost:8091**
 
 ### Testar se cada serviço está no ar
 
@@ -67,9 +67,9 @@ Abra no navegador: **http://localhost:8090**
 | Gateway        | http://localhost:8080/          |
 | Pets           | http://localhost:8081/          |
 | Agendamentos   | http://localhost:8082/          |
-| Painel (front) | http://localhost:8090/test      |
+| Painel (front) | http://localhost:8091/test      |
 
-Painel completo: http://localhost:8090
+Painel completo: http://localhost:8091
 
 ## Estrutura
 
