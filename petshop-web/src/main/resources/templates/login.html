@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Admin</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="auth-body">
+<div th:replace="~{fragments/nav-auth :: nav('login')}"></div>
+
+<div class="auth-card">
+  <span class="adm-tag">🔐 Área restrita</span>
+  <h1>Login Admin</h1>
+  <p class="sub">Painel de agendamentos e monitoramento.</p>
+
+  <div class="auth-ok" th:if="${param.logout}">Você saiu com segurança.</div>
+  <div class="auth-ok" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="auth-error" th:if="${param.error}">Usuário ou senha incorretos.</div>
+
+  <form th:action="@{/login}" method="post">
+    <div class="auth-field">
+      <label for="username">Usuário</label>
+      <input id="username" name="username" type="text" required autofocus/>
+    </div>
+    <div class="auth-field">
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" required/>
+    </div>
+    <button class="auth-btn" type="submit">Entrar no painel</button>
+  </form>
+
+  <div class="auth-actions">
+    <a class="auth-btn-secondary" th:href="@{/registro}">Criar conta admin</a>
+    <a class="auth-btn-secondary" th:href="@{/}">Voltar ao site</a>
+  </div>
+</div>
+</body>
+</html>

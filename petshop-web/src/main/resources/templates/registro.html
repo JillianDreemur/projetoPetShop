@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cadastro — Admin</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="auth-body">
+<div th:replace="~{fragments/nav-auth :: nav('registro')}"></div>
+
+<div class="auth-card">
+  <span class="adm-tag">➕ Novo administrador</span>
+  <h1>Cadastrar admin</h1>
+  <p class="sub">Use a chave de acesso fornecida pela equipe.</p>
+
+  <div class="auth-error" th:if="${erro}" th:text="${erro}"></div>
+
+  <form th:action="@{/registro}" th:object="${registerForm}" method="post">
+    <div class="auth-field">
+      <label for="nome">Usuário</label>
+      <input id="nome" th:field="*{nome}" required/>
+      <p class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+    </div>
+    <div class="auth-field">
+      <label for="senha">Senha</label>
+      <input id="senha" th:field="*{senha}" type="password" required/>
+      <p class="field-error" th:if="${#fields.hasErrors('senha')}" th:errors="*{senha}"></p>
+    </div>
+    <div class="auth-field">
+      <label for="confirmar">Confirmar senha</label>
+      <input id="confirmar" th:field="*{confirmarSenha}" type="password" required/>
+    </div>
+    <div class="auth-field">
+      <label for="chave">Chave de acesso</label>
+      <input id="chave" th:field="*{chaveAcesso}" type="password" required/>
+      <p class="field-error" th:if="${#fields.hasErrors('chaveAcesso')}" th:errors="*{chaveAcesso}"></p>
+    </div>
+    <button class="auth-btn" type="submit">Criar conta</button>
+  </form>
+
+  <div class="auth-actions">
+    <a class="auth-btn-secondary" th:href="@{/login}">Já tenho conta</a>
+    <a class="auth-btn-secondary" th:href="@{/}">Voltar ao site</a>
+  </div>
+</div>
+</body>
+</html>

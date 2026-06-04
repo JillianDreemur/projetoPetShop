@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav class="adm-nav" th:fragment="nav(secao)">
+  <a class="adm-nav-brand" th:href="@{/admin}">🛡️ Admin Pet Shop</a>
+  <div class="adm-nav-links">
+    <a th:href="@{/admin}"
+       th:classappend="${secao == 'painel'} ? ' active' : ''">Visão geral</a>
+    <a th:href="@{/admin/servicos}"
+       th:classappend="${secao == 'servicos'} ? ' active' : ''">Serviços</a>
+    <a th:href="@{/admin/agendamentos}"
+       th:classappend="${secao == 'agendamentos'} ? ' active' : ''">Agendamentos</a>
+    <a th:href="@{/}">Site público</a>
+  </div>
+  <div class="adm-nav-user">
+    <form th:action="@{/logout}" method="post">
+      <button class="adm-btn adm-btn-danger" type="submit">Sair</button>
+    </form>
+  </div>
+</nav>
+</body>
+</html>

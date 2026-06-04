@@ -6,7 +6,22 @@ spring:
     name: petshop-web
   thymeleaf:
     cache: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop
+    username: postgres
+    password: 5555
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
 
 petshop:
   gateway:
     base-url: http://localhost:8080
+  admin:
+    chave-acesso: "5555"
+  infra:
+    eureka-url: http://localhost:8761/test
+    gateway-url: http://localhost:8080/test
+    pets-url: http://localhost:8081/
+    agendamentos-url: http://localhost:8082/

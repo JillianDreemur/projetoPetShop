@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Pet Shop</title>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="adm-body">
+<div th:replace="~{fragments/nav-admin :: nav(${secao})}"></div>
+
+<div class="adm-shell">
+  <header class="adm-top">
+    <div>
+      <span class="adm-tag">Logado como administrador</span>
+      <h1>Olá, <span th:text="${adminNome}">Admin</span> 👋</h1>
+      <p th:if="${secao == 'painel'}">Visão geral do sistema</p>
+      <p th:if="${secao == 'servicos'}">Monitoramento dos microsserviços</p>
+      <p th:if="${secao == 'agendamentos'}">Gestão de agendamentos</p>
+    </div>
+    <a class="adm-btn adm-btn-ghost" th:href="@{/admin}" th:if="${secao == 'painel'}">↻ Atualizar</a>
+    <a class="adm-btn adm-btn-ghost" th:href="@{/admin/servicos}" th:if="${secao == 'servicos'}">↻ Atualizar</a>
+    <a class="adm-btn adm-btn-ghost" th:href="@{/admin/agendamentos}" th:if="${secao == 'agendamentos'}">↻ Atualizar</a>
+  </header>
+
+  <div class="adm-alert adm-alert-ok" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="adm-alert adm-alert-erro" th:if="${erro}" th:text="${erro}"></div>
+
+  <section th:if="${secao == 'painel' or secao == 'servicos'}">
+    <div class="adm-summary" th:if="${secao == 'painel'}">
+      <div class="adm-summary-card">
+        <strong th:text="${totalOnline}">0</strong>
+        <span>serviços online</span>
+      </div>
+      <div class="adm-summary-card">
+        <strong th:text="${totalServicos}">5</strong>
+        <span>monitorados</span>
+      </div>
+      <div class="adm-summary-card">
+        <strong th:text="${agendamentos != null ? #lists.size(agendamentos) : 0}">0</strong>
+        <span>agendamentos</span>
+      </div>
+    </div>
+
+    <h2 class="adm-section-title">Status da infraestrutura</h2>
+    <div class="status-grid">
+      <article th:each="s : ${servicos}"
+               th:class="'status-card ' + (${s.online} ? 'online' : 'offline')">
+        <h3 th:text="${s.nome}">Serviço</h3>
+        <div class="porta" th:text="'Porta ' + ${s.porta}">Porta</div>
+        <span th:class="'status-badge ' + (${s.online} ? 'online' : 'offline')"
+              th:text="${s.online} ? 'Online' : 'Offline'">Status</span>
+        <p th:text="${s.detalhe}">Detalhe</p>
+      </article>
+    </div>
+
+    <div class="adm-quick" th:if="${secao == 'painel'}">
+      <a class="adm-btn adm-btn-teal" th:href="@{/admin/agendamentos}">Gerenciar agendamentos →</a>
+      <a class="adm-btn adm-btn-ghost" th:href="@{/admin/servicos}">Ver só serviços →</a>
+    </div>
+  </section>
+
+  <section class="adm-panel" th:if="${secao == 'painel' or secao == 'agendamentos'}">
+    <div class="adm-panel-head">
+      <h2>📅 Agendamentos</h2>
+      <span class="adm-tag" th:text="${agendamentos != null ? #lists.size(agendamentos) : 0} + ' registros'">0</span>
+    </div>
+
+    <div class="adm-alert adm-alert-warn" th:if="${apiOffline != null and apiOffline != ''}">
+      <strong>API indisponível:</strong> <span th:text="${apiOffline}"></span>
+    </div>
+
+    <div class="adm-form">
+      <strong th:text="${agendamentoForm.id != null} ? '✏️ Editar' : '➕ Novo agendamento'"
+              style="display:block;margin-bottom:12px"></strong>
+      <form th:action="@{/admin/agendamentos}" th:object="${agendamentoForm}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+        <div class="adm-form-grid">
+          <div class="adm-field">
+            <label for="ag-data">Data e hora</label>
+            <input id="ag-data" type="datetime-local" th:field="*{data}" required/>
+            <p class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
+          </div>
+          <div class="adm-field">
+            <label for="ag-servico">Serviço</label>
+            <input id="ag-servico" th:field="*{tipoServico}" placeholder="Banho, tosa..." required/>
+            <p class="field-error" th:if="${#fields.hasErrors('tipoServico')}" th:errors="*{tipoServico}"></p>
+          </div>
+          <div class="adm-field">
+            <label for="ag-pet">Pet</label>
+            <select id="ag-pet" th:field="*{petId}" required th:disabled="${pets == null or #lists.isEmpty(pets)}">
+              <option value="">Selecione</option>
+              <option th:each="pet : ${pets}" th:value="${pet.id}" th:text="${pet.nome + ' (' + pet.raca + ')'}"></option>
+            </select>
+          </div>
+        </div>
+        <div class="adm-form-actions">
+          <button class="adm-btn adm-btn-teal" type="submit"
+                  th:text="${agendamentoForm.id != null} ? 'Salvar' : 'Criar'"
+                  th:disabled="${pets == null or #lists.isEmpty(pets)}">Criar</button>
+          <a class="adm-btn adm-btn-ghost" th:if="${agendamentoForm.id != null}" th:href="@{/admin/agendamentos/novo}">Cancelar</a>
+          <a class="adm-btn adm-btn-ghost" th:if="${agendamentoForm.id == null}" th:href="@{/admin/agendamentos/novo}">Limpar</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="adm-empty" th:if="${agendamentos == null or #lists.isEmpty(agendamentos)}">
+      Nenhum agendamento cadastrado.
+    </div>
+
+    <div class="adm-table-wrap" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+      <table class="adm-table">
+        <thead>
+        <tr>
+          <th>Serviço</th>
+          <th>Data / Hora</th>
+          <th>Pet</th>
+          <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ag : ${agendamentos}">
+          <td th:text="${ag.tipoServico}">Serviço</td>
+          <td th:text="${#temporals.format(ag.data, 'dd/MM/yyyy HH:mm')}">Data</td>
+          <td th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">Pet</td>
+          <td>
+            <div class="adm-row-actions">
+              <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
+              <form th:action="@{/admin/agendamentos/{id}/excluir(id=${ag.id})}" method="post"
+                    onsubmit="return confirm('Excluir agendamento?');">
+                <button class="adm-btn adm-btn-danger adm-btn-sm" type="submit">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</body>
+</html>

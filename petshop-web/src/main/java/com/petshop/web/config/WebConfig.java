@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties(GatewayProperties.class)
+@EnableConfigurationProperties({GatewayProperties.class, AdminProperties.class, InfraProperties.class})
 public class WebConfig {
 
     @Bean

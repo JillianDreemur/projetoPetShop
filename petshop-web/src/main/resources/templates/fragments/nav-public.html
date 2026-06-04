@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav class="site-nav" th:fragment="nav(secao)">
+  <a class="nav-brand" th:href="@{/}">
+    <span>🐾</span> Pet Shop Amigo
+  </a>
+  <div class="nav-links">
+    <a th:href="@{/}"
+       th:classappend="${secao == 'inicio'} ? ' active' : ''">Início</a>
+    <a th:href="@{/pets}"
+       th:classappend="${secao == 'pets'} ? ' active' : ''">Pets</a>
+    <a th:href="@{/agendamentos}"
+       th:classappend="${secao == 'agendamentos'} ? ' active' : ''">Agendamentos</a>
+    <a class="nav-admin" th:href="@{/login}">Área Admin</a>
+  </div>
+</nav>
+</body>
+</html>

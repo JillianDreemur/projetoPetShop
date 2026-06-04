@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema online — Pet Shop</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="app-shell" style="max-width:520px;margin-top:48px">
+  <div class="panel" style="text-align:center;padding:32px">
+    <span class="hero-badge">✓ Online</span>
+    <h1 style="margin:12px 0">Front-end no ar</h1>
+    <p class="subtitle" style="margin:0 auto 20px">O módulo petshop-web está respondendo.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a class="btn btn-primary" th:href="@{/}">Ir para o site</a>
+      <a class="btn btn-teal" th:href="@{/login}">Área administrativa</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

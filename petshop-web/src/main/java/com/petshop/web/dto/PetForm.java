@@ -1,7 +1,8 @@
 package com.petshop.web.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.UUID;
 
 public class PetForm {
@@ -14,11 +15,12 @@ public class PetForm {
     @NotBlank(message = "Informe a raça")
     private String raca;
 
-    @NotBlank(message = "Informe o nome do dono")
+    @NotBlank(message = "Informe o nome do tutor")
     private String nomeDono;
 
-    @Min(value = 0, message = "Visitas não pode ser negativo")
-    private Integer quantidadeVisitas = 0;
+    @NotNull(message = "Informe o peso em kg")
+    @Positive(message = "Peso deve ser maior que zero (kg)")
+    private Double pesoKg;
 
     public UUID getId() {
         return id;
@@ -52,11 +54,11 @@ public class PetForm {
         this.nomeDono = nomeDono;
     }
 
-    public Integer getQuantidadeVisitas() {
-        return quantidadeVisitas;
+    public Double getPesoKg() {
+        return pesoKg;
     }
 
-    public void setQuantidadeVisitas(Integer quantidadeVisitas) {
-        this.quantidadeVisitas = quantidadeVisitas;
+    public void setPesoKg(Double pesoKg) {
+        this.pesoKg = pesoKg;
     }
 }

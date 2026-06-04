@@ -6,6 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.UUID;
 
 @Entity
@@ -16,17 +19,22 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotBlank
     @Column(nullable = false)
     private String nome;
 
+    @NotBlank
     @Column(nullable = false)
     private String raca;
 
+    @NotBlank
     @Column(nullable = false)
     private String nomeDono;
 
-    @Column(nullable = false)
-    private Integer quantidadeVisitas = 0;
+    @NotNull
+    @Positive
+    @Column(name = "peso_kg", nullable = false)
+    private Double pesoKg;
 
     public UUID getId() {
         return id;
@@ -56,11 +64,11 @@ public class Pet {
         this.nomeDono = nomeDono;
     }
 
-    public Integer getQuantidadeVisitas() {
-        return quantidadeVisitas;
+    public Double getPesoKg() {
+        return pesoKg;
     }
 
-    public void setQuantidadeVisitas(Integer quantidadeVisitas) {
-        this.quantidadeVisitas = quantidadeVisitas;
+    public void setPesoKg(Double pesoKg) {
+        this.pesoKg = pesoKg;
     }
 }

@@ -55,21 +55,30 @@ Em cada pasta:
 mvn spring-boot:run
 ```
 
-## 3. Acessar o painel
+## 3. Navegação (tudo via Thymeleaf — use os botões, não precisa digitar URL)
 
-Abra no navegador: **http://localhost:8091**
+### Site público (porta 8091)
 
-### Testar se cada serviço está no ar
+| Botão no menu | Rota |
+|---------------|------|
+| Início | `/` ou `/inicio` |
+| Pets | `/pets` |
+| Agendamentos | `/agendamentos` |
+| Área Admin | `/login` |
 
-| Serviço        | URL de teste                    |
-|----------------|---------------------------------|
-| Eureka         | http://localhost:8761/test      |
-| Gateway        | http://localhost:8080/          |
-| Pets           | http://localhost:8081/          |
-| Agendamentos   | http://localhost:8082/          |
-| Painel (front) | http://localhost:8091/test      |
+### Área administrativa (após login)
 
-Painel completo: http://localhost:8091
+| Botão no menu | Rota |
+|---------------|------|
+| Visão geral | `/admin` |
+| Serviços | `/admin/servicos` |
+| Agendamentos | `/admin/agendamentos` |
+| Site público | `/` |
+| Sair | botão no menu |
+
+**Primeiro acesso:** `/registro` → nome, senha e chave **`5555`** → depois `/login`.
+
+Microsserviços (para subir): Eureka `8761`, Gateway `8080`, Pets `8081`, Agendamentos `8082`.
 
 ## Estrutura
 

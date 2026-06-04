@@ -21,20 +21,8 @@ public class AgendamentoService {
     }
 
     public Agendamento salvar(Agendamento agendamento) {
-        try {
-            petClient.buscarPorId(agendamento.getPetId());
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet informado não existe");
-        }
-
-        Agendamento salvo = agendamentoRepository.save(agendamento);
-        try {
-            petClient.incrementarVisitas(salvo.getPetId());
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
-                    "Agendamento salvo, mas não foi possível atualizar visitas do pet");
-        }
-        return salvo;
+        validarPetExiste(agendamento.getPetId());
+        return agendamentoRepository.save(agendamento);
     }
 
     public List<Agendamento> listarTodos() {
@@ -48,6 +36,7 @@ public class AgendamentoService {
 
     public Agendamento atualizar(UUID id, Agendamento dados) {
         Agendamento agendamento = buscarPorId(id);
+        validarPetExiste(dados.getPetId());
         agendamento.setData(dados.getData());
         agendamento.setTipoServico(dados.getTipoServico());
         agendamento.setPetId(dados.getPetId());
@@ -59,5 +48,13 @@ public class AgendamentoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado");
         }
         agendamentoRepository.deleteById(id);
+    }
+
+    private void validarPetExiste(UUID petId) {
+        try {
+            petClient.buscarPorId(petId);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet informado não existe");
+        }
     }
 }

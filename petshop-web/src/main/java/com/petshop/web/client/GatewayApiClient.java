@@ -112,8 +112,11 @@ public class GatewayApiClient {
         if (ex instanceof RestClientResponseException responseEx) {
             try {
                 JsonNode node = objectMapper.readTree(responseEx.getResponseBodyAsString());
-                if (node.has("error")) {
+                if (node.has("error") && !node.get("error").asText().isBlank()) {
                     return node.get("error").asText();
+                }
+                if (node.has("message") && !node.get("message").asText().isBlank()) {
+                    return node.get("message").asText();
                 }
             } catch (Exception ignored) {
                 // usa mensagem padrão abaixo
@@ -129,13 +132,17 @@ public class GatewayApiClient {
         dto.setNome(form.getNome());
         dto.setRaca(form.getRaca());
         dto.setNomeDono(form.getNomeDono());
-        dto.setQuantidadeVisitas(form.getQuantidadeVisitas() != null ? form.getQuantidadeVisitas() : 0);
+        dto.setPesoKg(form.getPesoKg());
         return dto;
     }
 
     public AgendamentoDto toAgendamentoDto(AgendamentoForm form) {
         AgendamentoDto dto = new AgendamentoDto();
-        dto.setData(LocalDateTime.parse(form.getData()));
+        String dataHora = form.getData();
+        if (dataHora != null && dataHora.length() == 16) {
+            dataHora = dataHora + ":00";
+        }
+        dto.setData(LocalDateTime.parse(dataHora));
         dto.setTipoServico(form.getTipoServico());
         dto.setPetId(form.getPetId());
         return dto;

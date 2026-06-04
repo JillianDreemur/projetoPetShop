@@ -29,11 +29,19 @@ public class HomeController {
         this.api = api;
     }
 
-    @GetMapping("/")
-    public String index(Model model) {
-        prepararFormularios(model);
-        carregarListas(model);
-        return "index";
+    @GetMapping({"/", "/inicio"})
+    public String inicio(Model model) {
+        return renderPagina(model, "inicio");
+    }
+
+    @GetMapping("/pets")
+    public String paginaPets(Model model) {
+        return renderPagina(model, "pets");
+    }
+
+    @GetMapping("/agendamentos")
+    public String paginaAgendamentos(Model model) {
+        return renderPagina(model, "agendamentos");
     }
 
     @PostMapping("/pets")
@@ -42,6 +50,7 @@ public class HomeController {
                             Model model,
                             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("secao", "pets");
             prepararFormularios(model);
             carregarListas(model);
             return "index";
@@ -59,7 +68,7 @@ public class HomeController {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
             redirectAttributes.addFlashAttribute("petForm", form);
         }
-        return "redirect:/#form-pet";
+        return "redirect:/pets";
     }
 
     @GetMapping("/pets/{id}/editar")
@@ -71,12 +80,18 @@ public class HomeController {
             form.setNome(pet.getNome());
             form.setRaca(pet.getRaca());
             form.setNomeDono(pet.getNomeDono());
-            form.setQuantidadeVisitas(pet.getQuantidadeVisitas());
+            form.setPesoKg(pet.getPesoKg());
             redirectAttributes.addFlashAttribute("petForm", form);
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
         }
-        return "redirect:/#form-pet";
+        return "redirect:/pets";
+    }
+
+    @GetMapping("/pets/novo")
+    public String novoPet(RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("petForm", new PetForm());
+        return "redirect:/pets";
     }
 
     @PostMapping("/pets/{id}/excluir")
@@ -87,7 +102,7 @@ public class HomeController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
         }
-        return "redirect:/";
+        return "redirect:/pets";
     }
 
     @PostMapping("/agendamentos")
@@ -96,6 +111,7 @@ public class HomeController {
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("secao", "agendamentos");
             prepararFormularios(model);
             carregarListas(model);
             return "index";
@@ -113,7 +129,7 @@ public class HomeController {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
         }
-        return "redirect:/#form-agendamento";
+        return "redirect:/agendamentos";
     }
 
     @GetMapping("/agendamentos/{id}/editar")
@@ -129,7 +145,13 @@ public class HomeController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
         }
-        return "redirect:/#form-agendamento";
+        return "redirect:/agendamentos";
+    }
+
+    @GetMapping("/agendamentos/novo")
+    public String novoAgendamento(RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("agendamentoForm", new AgendamentoForm());
+        return "redirect:/agendamentos";
     }
 
     @PostMapping("/agendamentos/{id}/cancelar")
@@ -140,7 +162,14 @@ public class HomeController {
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
         }
-        return "redirect:/";
+        return "redirect:/agendamentos";
+    }
+
+    private String renderPagina(Model model, String secao) {
+        model.addAttribute("secao", secao);
+        prepararFormularios(model);
+        carregarListas(model);
+        return "index";
     }
 
     private void prepararFormularios(Model model) {
@@ -164,7 +193,7 @@ public class HomeController {
             model.addAttribute("agendamentos", List.of());
             model.addAttribute("petNomes", Map.of());
             model.addAttribute("offline",
-                    "Verifique se Eureka (8761), Pets (8081), Agendamentos (8082) e Gateway (8080) estão rodando.");
+                    "Verifique se Eureka, Gateway e os microsserviços estão rodando.");
             if (!model.containsAttribute("erro")) {
                 model.addAttribute("erro", api.extrairMensagemErro(ex));
             }

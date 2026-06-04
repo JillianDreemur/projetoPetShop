@@ -8,7 +8,7 @@ public class PetDto {
     private String nome;
     private String raca;
     private String nomeDono;
-    private Integer quantidadeVisitas;
+    private Double pesoKg;
 
     public UUID getId() {
         return id;
@@ -42,11 +42,11 @@ public class PetDto {
         this.nomeDono = nomeDono;
     }
 
-    public Integer getQuantidadeVisitas() {
-        return quantidadeVisitas;
+    public Double getPesoKg() {
+        return pesoKg;
     }
 
-    public void setQuantidadeVisitas(Integer quantidadeVisitas) {
-        this.quantidadeVisitas = quantidadeVisitas;
+    public void setPesoKg(Double pesoKg) {
+        this.pesoKg = pesoKg;
     }
 }

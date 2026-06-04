@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav class="auth-nav" th:fragment="nav(ativo)">
+  <a th:href="@{/}" class="auth-nav-link">🏠 Site</a>
+  <a th:href="@{/login}"
+     th:classappend="${ativo == 'login'} ? ' active' : ''">Login</a>
+  <a th:href="@{/registro}"
+     th:classappend="${ativo == 'registro'} ? ' active' : ''">Cadastro</a>
+</nav>
+</body>
+</html>
