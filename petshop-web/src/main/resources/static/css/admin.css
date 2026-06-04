@@ -107,6 +107,18 @@ body.adm-body {
   margin-top: 20px;
 }
 
+.adm-quick-actions {
+  margin-bottom: 28px;
+}
+
+.adm-bloco-dados {
+  margin-top: 8px;
+}
+
+.adm-bloco-dados .adm-section-title:first-child {
+  margin-top: 0;
+}
+
 .adm-form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -324,6 +336,22 @@ body.adm-body {
   font-size: 0.78rem;
   color: var(--adm-muted);
   line-height: 1.4;
+}
+
+.adm-btn-porta {
+  display: inline-flex;
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+  padding: 8px 12px !important;
+  font-size: 0.8rem !important;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--adm-accent);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.adm-btn-porta:hover {
+  background: rgba(56, 189, 248, 0.22);
 }
 
 .adm-panel {

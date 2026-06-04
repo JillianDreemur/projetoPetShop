@@ -26,6 +26,9 @@ public class Agendamento {
     @Column(nullable = false)
     private UUID petId;
 
+    @Column(name = "valor_total")
+    private Double valorTotal;
+
     public UUID getId() {
         return id;
     }
@@ -52,5 +55,13 @@ public class Agendamento {
 
     public void setPetId(UUID petId) {
         this.petId = petId;
+    }
+
+    public Double getValorTotal() {
+        return valorTotal;
+    }
+
+    public void setValorTotal(Double valorTotal) {
+        this.valorTotal = valorTotal;
     }
 }

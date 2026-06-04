@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="status-grid" th:fragment="grid(servicos)">
+  <article th:each="s : ${servicos}"
+           th:class="'status-card ' + (${s.online} ? 'online' : 'offline')">
+    <h3 th:text="${s.nome}">Serviço</h3>
+    <div class="porta" th:text="'Porta ' + ${s.porta}">Porta</div>
+    <span th:class="'status-badge ' + (${s.online} ? 'online' : 'offline')"
+          th:text="${s.online} ? 'Online' : 'Offline'">Status</span>
+    <p th:text="${s.detalhe}">Detalhe</p>
+    <a class="adm-btn adm-btn-porta" th:href="${s.urlAbrir}" target="_blank" rel="noopener noreferrer"
+       th:text="'Abrir porta ' + ${s.porta}">Abrir</a>
+  </article>
+</div>
+</body>
+</html>

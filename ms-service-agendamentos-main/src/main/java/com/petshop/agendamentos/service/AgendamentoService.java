@@ -40,6 +40,7 @@ public class AgendamentoService {
         agendamento.setData(dados.getData());
         agendamento.setTipoServico(dados.getTipoServico());
         agendamento.setPetId(dados.getPetId());
+        agendamento.setValorTotal(dados.getValorTotal());
         return agendamentoRepository.save(agendamento);
     }
 

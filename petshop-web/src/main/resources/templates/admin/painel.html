@@ -14,121 +14,143 @@
     <div>
       <span class="adm-tag">Logado como administrador</span>
       <h1>Olá, <span th:text="${adminNome}">Admin</span> 👋</h1>
-      <p th:if="${secao == 'painel'}">Visão geral do sistema</p>
-      <p th:if="${secao == 'servicos'}">Monitoramento dos microsserviços</p>
+      <p th:if="${secao == 'painel'}">Visão geral</p>
+      <p th:if="${secao == 'pets'}">Gestão de pets</p>
+      <p th:if="${secao == 'catalogo'}">Serviços oferecidos pela loja</p>
       <p th:if="${secao == 'agendamentos'}">Gestão de agendamentos</p>
+      <p th:if="${secao == 'servicos'}">Monitoramento da infraestrutura</p>
     </div>
-    <a class="adm-btn adm-btn-ghost" th:href="@{/admin}" th:if="${secao == 'painel'}">↻ Atualizar</a>
-    <a class="adm-btn adm-btn-ghost" th:href="@{/admin/servicos}" th:if="${secao == 'servicos'}">↻ Atualizar</a>
-    <a class="adm-btn adm-btn-ghost" th:href="@{/admin/agendamentos}" th:if="${secao == 'agendamentos'}">↻ Atualizar</a>
   </header>
 
   <div class="adm-alert adm-alert-ok" th:if="${sucesso}" th:text="${sucesso}"></div>
   <div class="adm-alert adm-alert-erro" th:if="${erro}" th:text="${erro}"></div>
 
-  <section th:if="${secao == 'painel' or secao == 'servicos'}">
-    <div class="adm-summary" th:if="${secao == 'painel'}">
+  <div class="adm-alert adm-alert-warn" th:if="${apiOffline != null and apiOffline != ''}">
+    <strong>API indisponível:</strong> <span th:text="${apiOffline}"></span>
+  </div>
+
+  <!-- PAINEL: resumo -->
+  <section th:if="${secao == 'painel'}">
+    <div class="adm-summary">
       <div class="adm-summary-card">
-        <strong th:text="${totalOnline}">0</strong>
-        <span>serviços online</span>
-      </div>
-      <div class="adm-summary-card">
-        <strong th:text="${totalServicos}">5</strong>
-        <span>monitorados</span>
+        <strong th:text="${pets != null ? #lists.size(pets) : 0}">0</strong>
+        <span>pets</span>
       </div>
       <div class="adm-summary-card">
         <strong th:text="${agendamentos != null ? #lists.size(agendamentos) : 0}">0</strong>
         <span>agendamentos</span>
       </div>
+      <div class="adm-summary-card">
+        <strong th:text="${catalogoLoja != null ? #lists.size(catalogoLoja) : 0}">0</strong>
+        <span>serviços no catálogo</span>
+      </div>
+      <div class="adm-summary-card">
+        <strong th:text="${totalOnline}">0</strong>
+        <span>microsserviços online</span>
+      </div>
+    </div>
+
+    <div class="adm-quick adm-quick-actions">
+      <a class="adm-btn adm-btn-teal" th:href="@{/admin/pets}">Gerenciar pets →</a>
+      <a class="adm-btn adm-btn-teal" th:href="@{/admin/catalogo}">Gerenciar catálogo →</a>
+      <a class="adm-btn adm-btn-teal" th:href="@{/admin/agendamentos}">Gerenciar agendamentos →</a>
     </div>
 
     <h2 class="adm-section-title">Status da infraestrutura</h2>
-    <div class="status-grid">
-      <article th:each="s : ${servicos}"
-               th:class="'status-card ' + (${s.online} ? 'online' : 'offline')">
-        <h3 th:text="${s.nome}">Serviço</h3>
-        <div class="porta" th:text="'Porta ' + ${s.porta}">Porta</div>
-        <span th:class="'status-badge ' + (${s.online} ? 'online' : 'offline')"
-              th:text="${s.online} ? 'Online' : 'Offline'">Status</span>
-        <p th:text="${s.detalhe}">Detalhe</p>
-      </article>
-    </div>
+    <div th:replace="~{fragments/status-infra :: grid(${servicosInfra})}"></div>
 
-    <div class="adm-quick" th:if="${secao == 'painel'}">
-      <a class="adm-btn adm-btn-teal" th:href="@{/admin/agendamentos}">Gerenciar agendamentos →</a>
-      <a class="adm-btn adm-btn-ghost" th:href="@{/admin/servicos}">Ver só serviços →</a>
+    <div class="adm-bloco-dados">
+    <h2 class="adm-section-title">Pets cadastrados</h2>
+    <div class="adm-table-wrap" th:if="${pets != null and !#lists.isEmpty(pets)}">
+      <table class="adm-table">
+        <thead><tr><th>Nome</th><th>Raça</th><th>Tutor</th><th>Peso</th></tr></thead>
+        <tbody>
+        <tr th:each="pet : ${pets}">
+          <td th:text="${pet.nome}">—</td>
+          <td th:text="${pet.raca}">—</td>
+          <td th:text="${pet.nomeDono}">—</td>
+          <td th:text="${pet.pesoKg != null ? #numbers.formatDecimal(pet.pesoKg, 1, 2) + ' kg' : '—'}">—</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-empty" th:if="${pets == null or #lists.isEmpty(pets)}">Nenhum pet.</div>
+
+    <h2 class="adm-section-title">Últimos agendamentos</h2>
+    <div class="adm-table-wrap" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+      <table class="adm-table">
+        <thead><tr><th>Serviços</th><th>Data</th><th>Total</th><th>Pet</th></tr></thead>
+        <tbody>
+        <tr th:each="ag : ${agendamentos}">
+          <td th:text="${ag.tipoServico}">—</td>
+          <td th:text="${#temporals.format(ag.data, 'dd/MM/yyyy')}">—</td>
+          <td th:text="${ag.valorTotal != null ? #numbers.formatDecimal(ag.valorTotal, 1, 2, 'COMMA') : '—'}">—</td>
+          <td th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">—</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-empty" th:if="${agendamentos == null or #lists.isEmpty(agendamentos)}">Nenhum agendamento.</div>
     </div>
   </section>
 
-  <section class="adm-panel" th:if="${secao == 'painel' or secao == 'agendamentos'}">
-    <div class="adm-panel-head">
-      <h2>📅 Agendamentos</h2>
-      <span class="adm-tag" th:text="${agendamentos != null ? #lists.size(agendamentos) : 0} + ' registros'">0</span>
-    </div>
+  <!-- INFRA -->
+  <section th:if="${secao == 'servicos'}">
+    <h2 class="adm-section-title">Microsserviços</h2>
+    <div th:replace="~{fragments/status-infra :: grid(${servicosInfra})}"></div>
+  </section>
 
-    <div class="adm-alert adm-alert-warn" th:if="${apiOffline != null and apiOffline != ''}">
-      <strong>API indisponível:</strong> <span th:text="${apiOffline}"></span>
-    </div>
-
+  <!-- CATÁLOGO -->
+  <section class="adm-panel" th:if="${secao == 'catalogo'}">
+    <div class="adm-panel-head"><h2>🛍️ Catálogo de serviços</h2></div>
     <div class="adm-form">
-      <strong th:text="${agendamentoForm.id != null} ? '✏️ Editar' : '➕ Novo agendamento'"
-              style="display:block;margin-bottom:12px"></strong>
-      <form th:action="@{/admin/agendamentos}" th:object="${agendamentoForm}" method="post">
+      <strong th:text="${servicoForm.id != null} ? '✏️ Editar serviço' : '➕ Novo serviço'"></strong>
+      <form th:action="@{/admin/catalogo}" th:object="${servicoForm}" method="post" class="adm-form-grid" style="margin-top:12px">
         <th:block th:replace="~{fragments/csrf :: token}"/>
         <input type="hidden" th:field="*{id}"/>
-        <div class="adm-form-grid">
-          <div class="adm-field">
-            <label for="ag-data">Data e hora</label>
-            <input id="ag-data" type="datetime-local" th:field="*{data}" required/>
-            <p class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
-          </div>
-          <div class="adm-field">
-            <label for="ag-servico">Serviço</label>
-            <input id="ag-servico" th:field="*{tipoServico}" placeholder="Banho, tosa..." required/>
-            <p class="field-error" th:if="${#fields.hasErrors('tipoServico')}" th:errors="*{tipoServico}"></p>
-          </div>
-          <div class="adm-field">
-            <label for="ag-pet">Pet</label>
-            <select id="ag-pet" th:field="*{petId}" required th:disabled="${pets == null or #lists.isEmpty(pets)}">
-              <option value="">Selecione</option>
-              <option th:each="pet : ${pets}" th:value="${pet.id}" th:text="${pet.nome + ' (' + pet.raca + ')'}"></option>
-            </select>
-          </div>
+        <div class="adm-field"><label>Nome</label><input th:field="*{nome}" required/></div>
+        <div class="adm-field"><label>Valor (ex.: 50,00)</label><input th:field="*{valor}" required/></div>
+        <div class="adm-field">
+          <label>Categoria</label>
+          <select th:field="*{categoria}">
+            <option value="estetica">Banho e tosa</option>
+            <option value="vacina">Vacina</option>
+            <option value="remedio">Remédio</option>
+            <option value="geral">Geral</option>
+          </select>
+        </div>
+        <div class="adm-field">
+          <label>Grupo exclusivo</label>
+          <select th:field="*{grupoExclusivo}">
+            <option value="">Nenhum</option>
+            <option value="banho_tosa">banho_tosa</option>
+            <option value="remedio">remedio</option>
+          </select>
+        </div>
+        <div class="adm-field">
+          <label><input type="checkbox" th:field="*{pacote}"/> É pacote combo</label>
         </div>
         <div class="adm-form-actions">
-          <button class="adm-btn adm-btn-teal" type="submit"
-                  th:text="${agendamentoForm.id != null} ? 'Salvar' : 'Criar'"
-                  th:disabled="${pets == null or #lists.isEmpty(pets)}">Criar</button>
-          <a class="adm-btn adm-btn-ghost" th:if="${agendamentoForm.id != null}" th:href="@{/admin/agendamentos/novo}">Cancelar</a>
-          <a class="adm-btn adm-btn-ghost" th:if="${agendamentoForm.id == null}" th:href="@{/admin/agendamentos/novo}">Limpar</a>
+          <button class="adm-btn adm-btn-teal" type="submit">Salvar serviço</button>
+          <a class="adm-btn adm-btn-ghost" th:href="@{/admin/catalogo}">Limpar</a>
         </div>
       </form>
     </div>
-
-    <div class="adm-empty" th:if="${agendamentos == null or #lists.isEmpty(agendamentos)}">
-      Nenhum agendamento cadastrado.
-    </div>
-
-    <div class="adm-table-wrap" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+    <div class="adm-table-wrap" th:if="${catalogoLoja != null and !#lists.isEmpty(catalogoLoja)}">
       <table class="adm-table">
-        <thead>
-        <tr>
-          <th>Serviço</th>
-          <th>Data / Hora</th>
-          <th>Pet</th>
-          <th>Ações</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nome</th><th>Preço</th><th>Categoria</th><th>Grupo</th><th>Pacote</th><th>Ações</th></tr></thead>
         <tbody>
-        <tr th:each="ag : ${agendamentos}">
-          <td th:text="${ag.tipoServico}">Serviço</td>
-          <td th:text="${#temporals.format(ag.data, 'dd/MM/yyyy HH:mm')}">Data</td>
-          <td th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">Pet</td>
+        <tr th:each="s : ${catalogoLoja}">
+          <td th:text="${s.nome}">—</td>
+          <td th:text="${s.preco}">—</td>
+          <td th:text="${s.categoria}">—</td>
+          <td th:text="${s.grupoExclusivo != null ? s.grupoExclusivo : '—'}">—</td>
+          <td th:text="${s.pacote} ? 'Sim' : 'Não'">—</td>
           <td>
             <div class="adm-row-actions">
-              <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
-              <form th:action="@{/admin/agendamentos/{id}/excluir(id=${ag.id})}" method="post"
-                    onsubmit="return confirm('Excluir agendamento?');">
+              <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/catalogo/{id}/editar(id=${s.id})}">Editar</a>
+              <form th:action="@{/admin/catalogo/{id}/excluir(id=${s.id})}" method="post"
+                    onsubmit="return confirm('Excluir este serviço?');">
                 <th:block th:replace="~{fragments/csrf :: token}"/>
                 <button class="adm-btn adm-btn-danger adm-btn-sm" type="submit">Excluir</button>
               </form>
@@ -138,6 +160,110 @@
         </tbody>
       </table>
     </div>
+  </section>
+
+  <!-- PETS ADMIN -->
+  <section class="adm-panel" th:if="${secao == 'pets'}">
+    <div class="adm-panel-head"><h2>🐕 Pets</h2></div>
+    <div class="adm-form">
+      <strong th:text="${petForm.id != null} ? '✏️ Editar pet' : '➕ Novo pet'"></strong>
+      <form th:action="@{/admin/pets}" th:object="${petForm}" method="post" class="adm-form-grid" style="margin-top:12px">
+        <th:block th:replace="~{fragments/csrf :: token}"/>
+        <input type="hidden" th:field="*{id}"/>
+        <div class="adm-field"><label>Nome</label><input th:field="*{nome}" required/></div>
+        <div class="adm-field"><label>Raça</label><input th:field="*{raca}" required/></div>
+        <div class="adm-field"><label>Tutor</label><input th:field="*{nomeDono}" required/></div>
+        <div class="adm-field"><label>Peso (kg)</label><input type="number" step="0.01" min="0.01" th:field="*{pesoKg}" required/></div>
+        <div class="adm-form-actions">
+          <button class="adm-btn adm-btn-teal" type="submit">Salvar pet</button>
+          <a class="adm-btn adm-btn-ghost" th:href="@{/admin/pets}">Limpar</a>
+        </div>
+      </form>
+    </div>
+    <div class="adm-table-wrap" th:if="${pets != null and !#lists.isEmpty(pets)}">
+      <table class="adm-table">
+        <thead><tr><th>Nome</th><th>Raça</th><th>Tutor</th><th>Peso</th><th>Ações</th></tr></thead>
+        <tbody>
+        <tr th:each="pet : ${pets}">
+          <td th:text="${pet.nome}">—</td>
+          <td th:text="${pet.raca}">—</td>
+          <td th:text="${pet.nomeDono}">—</td>
+          <td th:text="${pet.pesoKg != null ? #numbers.formatDecimal(pet.pesoKg, 1, 2) + ' kg' : '—'}">—</td>
+          <td>
+            <div class="adm-row-actions">
+              <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/pets/{id}/editar(id=${pet.id})}">Editar</a>
+              <form th:action="@{/admin/pets/{id}/excluir(id=${pet.id})}" method="post"
+                    onsubmit="return confirm('Excluir pet?');">
+                <th:block th:replace="~{fragments/csrf :: token}"/>
+                <button class="adm-btn adm-btn-danger adm-btn-sm" type="submit">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-empty" th:if="${pets == null or #lists.isEmpty(pets)}">Nenhum pet cadastrado.</div>
+  </section>
+
+  <!-- AGENDAMENTOS ADMIN -->
+  <section class="adm-panel" th:if="${secao == 'agendamentos'}">
+    <div class="adm-panel-head">
+      <h2>📅 Agendamentos</h2>
+      <span class="adm-tag" th:text="${agendamentos != null ? #lists.size(agendamentos) : 0} + ' registros'">0</span>
+    </div>
+    <div class="adm-form">
+      <strong th:text="${agendamentoForm.id != null} ? '✏️ Editar' : '➕ Novo agendamento'"></strong>
+      <form th:action="@{/admin/agendamentos}" th:object="${agendamentoForm}" method="post">
+        <th:block th:replace="~{fragments/csrf :: token}"/>
+        <input type="hidden" th:field="*{id}"/>
+        <div class="adm-form-grid">
+          <div class="adm-field">
+            <label>Data</label>
+            <input type="date" th:field="*{data}" required/>
+          </div>
+          <div class="adm-field">
+            <label>Serviços (texto)</label>
+            <input th:field="*{tipoServico}" placeholder="Banho + Tosa" required/>
+          </div>
+          <div class="adm-field">
+            <label>Pet</label>
+            <select th:field="*{petId}" required th:disabled="${pets == null or #lists.isEmpty(pets)}">
+              <option value="">Selecione</option>
+              <option th:each="pet : ${pets}" th:value="${pet.id}" th:text="${pet.nome}"></option>
+            </select>
+          </div>
+        </div>
+        <div class="adm-form-actions">
+          <button class="adm-btn adm-btn-teal" type="submit">Salvar</button>
+          <a class="adm-btn adm-btn-ghost" th:href="@{/admin/agendamentos/novo}">Limpar</a>
+        </div>
+      </form>
+    </div>
+    <div class="adm-table-wrap" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+      <table class="adm-table">
+        <thead><tr><th>Serviços</th><th>Data</th><th>Total</th><th>Pet</th><th>Ações</th></tr></thead>
+        <tbody>
+        <tr th:each="ag : ${agendamentos}">
+          <td th:text="${ag.tipoServico}">—</td>
+          <td th:text="${#temporals.format(ag.data, 'dd/MM/yyyy')}">—</td>
+          <td th:text="${ag.valorTotal != null ? #numbers.formatDecimal(ag.valorTotal, 1, 2, 'COMMA') : '—'}">—</td>
+          <td th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">—</td>
+          <td>
+            <div class="adm-row-actions">
+              <a class="adm-btn adm-btn-ghost adm-btn-sm" th:href="@{/admin/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
+              <form th:action="@{/admin/agendamentos/{id}/excluir(id=${ag.id})}" method="post"
+                    onsubmit="return confirm('Excluir?');">
+                <th:block th:replace="~{fragments/csrf :: token}"/>
+                <button class="adm-btn adm-btn-danger adm-btn-sm" type="submit">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="adm-empty" th:if="${agendamentos == null or #lists.isEmpty(agendamentos)}">Nenhum agendamento.</div>
   </section>
 </div>
 </body>

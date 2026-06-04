@@ -71,8 +71,10 @@ mvn spring-boot:run
 | Botão no menu | Rota |
 |---------------|------|
 | Visão geral | `/admin` |
-| Serviços | `/admin/servicos` |
+| Pets | `/admin/pets` |
+| Catálogo (serviços e preços) | `/admin/catalogo` |
 | Agendamentos | `/admin/agendamentos` |
+| Infraestrutura | `/admin/servicos` |
 | Sair | botão no menu |
 
 **Primeiro acesso:** `/registro` → nome, senha e chave **`5555`** → depois `/login`.

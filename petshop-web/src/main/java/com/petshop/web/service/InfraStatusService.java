@@ -25,7 +25,8 @@ public class InfraStatusService {
                 verificar("Gateway", infra.getGatewayUrl()),
                 verificar("Service Pets", infra.getPetsUrl()),
                 verificar("Service Agendamentos", infra.getAgendamentosUrl()),
-                new ServiceStatusDto("Petshop Web (front)", "http://localhost:8091/test", 8091, true, "Este painel")
+                new ServiceStatusDto("Petshop Web (front)", "http://localhost:8091/test",
+                        "http://localhost:8091/", 8091, true, "Este painel")
         );
     }
 

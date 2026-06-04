@@ -411,6 +411,103 @@ body {
   color: var(--muted);
 }
 
+.servicos-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.servico-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  min-height: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  line-height: 1.25;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.servico-check-label:hover {
+  border-color: var(--teal);
+  background: #fafdfc;
+}
+
+.servico-check-label:has(input:checked) {
+  border-color: var(--teal);
+  background: #f0faf9;
+}
+
+.servico-check-label input {
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  accent-color: var(--teal-dark);
+}
+
+.servico-check-label span {
+  flex: 1;
+}
+
+.resumo-pagamento {
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+}
+
+.resumo-pagamento h3,
+.pagamento-box h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: var(--warm-dark);
+}
+
+.resumo-lista {
+  margin-bottom: 12px;
+}
+
+.resumo-total-linha {
+  font-size: 1.1rem;
+  margin: 0;
+  text-align: right;
+}
+
+.resumo-total-linha strong {
+  color: var(--teal-dark);
+  font-size: 1.25rem;
+}
+
+.pagamento-box {
+  margin: 16px 0;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--teal);
+  background: #f0faf9;
+}
+
+.pagamento-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pagamento-opcoes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .field-error {
   color: #c53030;
   font-size: 0.82rem;

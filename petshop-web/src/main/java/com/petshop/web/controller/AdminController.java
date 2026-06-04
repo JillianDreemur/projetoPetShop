@@ -4,9 +4,13 @@ import com.petshop.web.client.GatewayApiClient;
 import com.petshop.web.dto.AgendamentoDto;
 import com.petshop.web.dto.AgendamentoForm;
 import com.petshop.web.dto.PetDto;
+import com.petshop.web.dto.PetForm;
 import com.petshop.web.dto.ServiceStatusDto;
+import com.petshop.web.dto.ServicoForm;
 import com.petshop.web.service.InfraStatusService;
+import com.petshop.web.service.ServicoCatalogoService;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -30,25 +35,140 @@ public class AdminController {
 
     private final GatewayApiClient api;
     private final InfraStatusService infraStatusService;
+    private final ServicoCatalogoService catalogo;
 
-    public AdminController(GatewayApiClient api, InfraStatusService infraStatusService) {
+    public AdminController(GatewayApiClient api, InfraStatusService infraStatusService,
+                           ServicoCatalogoService catalogo) {
         this.api = api;
         this.infraStatusService = infraStatusService;
+        this.catalogo = catalogo;
     }
 
     @GetMapping
     public String painel(@AuthenticationPrincipal UserDetails usuario, Model model) {
-        return renderAdmin(usuario, model, "painel", new AgendamentoForm());
+        return renderAdmin(usuario, model, "painel", new AgendamentoForm(), new ServicoForm(), new PetForm());
     }
 
     @GetMapping("/servicos")
     public String servicos(@AuthenticationPrincipal UserDetails usuario, Model model) {
-        return renderAdmin(usuario, model, "servicos", new AgendamentoForm());
+        return renderAdmin(usuario, model, "servicos", new AgendamentoForm(), new ServicoForm(), new PetForm());
+    }
+
+    @GetMapping("/catalogo")
+    public String catalogo(@AuthenticationPrincipal UserDetails usuario, Model model) {
+        return renderAdmin(usuario, model, "catalogo", new AgendamentoForm(), new ServicoForm(), new PetForm());
+    }
+
+    @GetMapping("/pets")
+    public String pets(@AuthenticationPrincipal UserDetails usuario, Model model) {
+        return renderAdmin(usuario, model, "pets", new AgendamentoForm(), new ServicoForm(), new PetForm());
     }
 
     @GetMapping("/agendamentos")
     public String agendamentos(@AuthenticationPrincipal UserDetails usuario, Model model) {
-        return renderAdmin(usuario, model, "agendamentos", new AgendamentoForm());
+        return renderAdmin(usuario, model, "agendamentos", new AgendamentoForm(), new ServicoForm(), new PetForm());
+    }
+
+    @PostMapping("/catalogo")
+    public String salvarServico(@ModelAttribute("servicoForm") ServicoForm form,
+                                @AuthenticationPrincipal UserDetails usuario,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            BigDecimal valor = parseValor(form.getValor());
+            catalogo.salvar(form.getNome(), valor, form.getCategoria(), form.getGrupoExclusivo(),
+                    form.isPacote(), form.getId());
+            redirectAttributes.addFlashAttribute("sucesso",
+                    form.getId() != null ? "Serviço atualizado." : "Serviço cadastrado.");
+        } catch (ResponseStatusException ex) {
+            redirectAttributes.addFlashAttribute("erro", ex.getReason());
+            redirectAttributes.addFlashAttribute("servicoForm", form);
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", "Valor inválido. Use formato 50,00 ou 50.00");
+            redirectAttributes.addFlashAttribute("servicoForm", form);
+        }
+        return "redirect:/admin/catalogo";
+    }
+
+    @GetMapping("/catalogo/{id}/editar")
+    public String editarServico(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            var s = catalogo.buscar(id);
+            ServicoForm form = new ServicoForm();
+            form.setId(s.getId());
+            form.setNome(s.getNome());
+            form.setValor(s.getValor().toPlainString().replace('.', ','));
+            form.setCategoria(s.getCategoria());
+            form.setGrupoExclusivo(s.getGrupoExclusivo());
+            form.setPacote(s.isPacote());
+            redirectAttributes.addFlashAttribute("servicoForm", form);
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", ex.getMessage());
+        }
+        return "redirect:/admin/catalogo";
+    }
+
+    @PostMapping("/catalogo/{id}/excluir")
+    public String excluirServico(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            catalogo.excluir(id);
+            redirectAttributes.addFlashAttribute("sucesso", "Serviço removido.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", ex.getMessage());
+        }
+        return "redirect:/admin/catalogo";
+    }
+
+    @PostMapping("/pets")
+    public String salvarPetAdmin(@Valid @ModelAttribute("petForm") PetForm form,
+                                 BindingResult bindingResult,
+                                 @AuthenticationPrincipal UserDetails usuario,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            return renderAdmin(usuario, model, "pets", new AgendamentoForm(), new ServicoForm(), form);
+        }
+        try {
+            PetDto dto = api.toPetDto(form);
+            if (form.getId() != null) {
+                api.atualizarPet(form.getId(), dto);
+                redirectAttributes.addFlashAttribute("sucesso", "Pet atualizado.");
+            } else {
+                api.criarPet(dto);
+                redirectAttributes.addFlashAttribute("sucesso", "Pet cadastrado.");
+            }
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+            redirectAttributes.addFlashAttribute("petForm", form);
+        }
+        return "redirect:/admin/pets";
+    }
+
+    @GetMapping("/pets/{id}/editar")
+    public String editarPetAdmin(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            PetDto pet = api.buscarPet(id);
+            PetForm form = new PetForm();
+            form.setId(pet.getId());
+            form.setNome(pet.getNome());
+            form.setRaca(pet.getRaca());
+            form.setNomeDono(pet.getNomeDono());
+            form.setPesoKg(pet.getPesoKg());
+            redirectAttributes.addFlashAttribute("petForm", form);
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        }
+        return "redirect:/admin/pets";
+    }
+
+    @PostMapping("/pets/{id}/excluir")
+    public String excluirPetAdmin(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+        try {
+            api.excluirPet(id);
+            redirectAttributes.addFlashAttribute("sucesso", "Pet removido.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erro", api.extrairMensagemErro(ex));
+        }
+        return "redirect:/admin/pets";
     }
 
     @GetMapping("/agendamentos/novo")
@@ -63,11 +183,14 @@ public class AdminController {
                                     @AuthenticationPrincipal UserDetails usuario,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
+        if (form.getTipoServico() == null || form.getTipoServico().isBlank()) {
+            bindingResult.rejectValue("tipoServico", "tipoServico", "Informe o serviço");
+        }
         if (bindingResult.hasErrors()) {
-            return renderAdmin(usuario, model, "agendamentos", form);
+            return renderAdmin(usuario, model, "agendamentos", form, new ServicoForm(), new PetForm());
         }
         try {
-            AgendamentoDto dto = api.toAgendamentoDto(form);
+            AgendamentoDto dto = api.toAgendamentoDtoAdmin(form);
             if (form.getId() != null) {
                 api.atualizarAgendamento(form.getId(), dto);
                 redirectAttributes.addFlashAttribute("sucesso", "Agendamento atualizado.");
@@ -88,7 +211,7 @@ public class AdminController {
             AgendamentoDto ag = api.buscarAgendamento(id);
             AgendamentoForm form = new AgendamentoForm();
             form.setId(ag.getId());
-            form.setData(ag.getData().toString().substring(0, 16));
+            form.setData(ag.getData().toLocalDate().toString());
             form.setTipoServico(ag.getTipoServico());
             form.setPetId(ag.getPetId());
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
@@ -109,24 +232,32 @@ public class AdminController {
         return "redirect:/admin/agendamentos";
     }
 
-    private String renderAdmin(UserDetails usuario, Model model, String secao, AgendamentoForm formPadrao) {
+    private String renderAdmin(UserDetails usuario, Model model, String secao,
+                               AgendamentoForm agForm, ServicoForm servicoForm, PetForm petForm) {
         model.addAttribute("adminNome", usuario != null ? usuario.getUsername() : "Admin");
         model.addAttribute("secao", secao);
         carregarStatus(model);
-        carregarAgendamentos(model, formPadrao);
+        carregarApi(model, agForm, servicoForm, petForm);
+        model.addAttribute("catalogoLoja", catalogo.listarParaExibicao());
         return "admin/painel";
     }
 
     private void carregarStatus(Model model) {
         List<ServiceStatusDto> servicos = infraStatusService.verificarTodos();
-        model.addAttribute("servicos", servicos);
+        model.addAttribute("servicosInfra", servicos);
         model.addAttribute("totalOnline", infraStatusService.contarOnline(servicos));
         model.addAttribute("totalServicos", servicos.size());
     }
 
-    private void carregarAgendamentos(Model model, AgendamentoForm formPadrao) {
+    private void carregarApi(Model model, AgendamentoForm agForm, ServicoForm servicoForm, PetForm petForm) {
         if (!model.containsAttribute("agendamentoForm")) {
-            model.addAttribute("agendamentoForm", formPadrao);
+            model.addAttribute("agendamentoForm", agForm);
+        }
+        if (!model.containsAttribute("servicoForm")) {
+            model.addAttribute("servicoForm", servicoForm);
+        }
+        if (!model.containsAttribute("petForm")) {
+            model.addAttribute("petForm", petForm);
         }
         try {
             List<PetDto> pets = api.listarPets();
@@ -153,5 +284,13 @@ public class AdminController {
                 (a, b) -> a,
                 HashMap::new
         ));
+    }
+
+    private BigDecimal parseValor(String valorStr) {
+        if (valorStr == null || valorStr.isBlank()) {
+            throw new IllegalArgumentException("Valor obrigatório");
+        }
+        String normalizado = valorStr.trim().replace("R$", "").replace(" ", "").replace(",", ".");
+        return new BigDecimal(normalizado);
     }
 }

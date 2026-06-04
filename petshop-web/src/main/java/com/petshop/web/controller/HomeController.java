@@ -5,8 +5,10 @@ import com.petshop.web.dto.AgendamentoDto;
 import com.petshop.web.dto.AgendamentoForm;
 import com.petshop.web.dto.PetDto;
 import com.petshop.web.dto.PetForm;
-import com.petshop.web.service.CatalogoServicos;
+import com.petshop.web.service.AgendamentoMontador;
+import com.petshop.web.service.ServicoCatalogoService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,27 +27,38 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class HomeController {
 
     private final GatewayApiClient api;
+    private final ServicoCatalogoService catalogo;
+    private final AgendamentoMontador agendamentoMontador;
 
-    public HomeController(GatewayApiClient api) {
+    public HomeController(GatewayApiClient api, ServicoCatalogoService catalogo,
+                          AgendamentoMontador agendamentoMontador) {
         this.api = api;
+        this.catalogo = catalogo;
+        this.agendamentoMontador = agendamentoMontador;
     }
 
     @GetMapping({"/", "/inicio"})
     public String inicio(Model model) {
         model.addAttribute("secao", "inicio");
-        model.addAttribute("servicos", CatalogoServicos.listarTodos());
+        model.addAttribute("servicos", catalogo.listarParaExibicao());
         return "index";
     }
 
     @GetMapping("/pets")
     public String paginaPets(Model model) {
-        return renderPaginaComApi(model, "pets");
+        model.addAttribute("secao", "pets");
+        prepararFormularios(model);
+        return "index";
     }
 
     @GetMapping("/agendamentos")
     public String paginaAgendamentos(Model model) {
-        model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
-        return renderPaginaComApi(model, "agendamentos");
+        model.addAttribute("secao", "agendamentos");
+        model.addAttribute("catalogoServicos", catalogo.listarParaExibicao());
+        model.addAttribute("dataMinima", LocalDate.now().toString());
+        prepararFormularios(model);
+        carregarDadosAgendamentos(model);
+        return "index";
     }
 
     @PostMapping("/pets")
@@ -56,7 +69,6 @@ public class HomeController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("secao", "pets");
             prepararFormularios(model);
-            carregarListas(model);
             return "index";
         }
         try {
@@ -98,37 +110,28 @@ public class HomeController {
         return "redirect:/pets";
     }
 
-    @PostMapping("/pets/{id}/excluir")
-    public String excluirPet(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        try {
-            api.excluirPet(id);
-            redirectAttributes.addFlashAttribute("sucesso", "Pet removido.");
-        } catch (Exception ignored) {
-            // Falhas de API não são exibidas na área do cliente
-        }
-        return "redirect:/pets";
-    }
-
     @PostMapping("/agendamentos")
     public String salvarAgendamento(@Valid @ModelAttribute("agendamentoForm") AgendamentoForm form,
                                     BindingResult bindingResult,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
+        validarAgendamentoCliente(form, bindingResult);
         if (bindingResult.hasErrors()) {
             model.addAttribute("secao", "agendamentos");
-            model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
+            model.addAttribute("catalogoServicos", catalogo.listarParaExibicao());
+            model.addAttribute("dataMinima", LocalDate.now().toString());
             prepararFormularios(model);
-            carregarListas(model);
+            carregarDadosAgendamentos(model);
             return "index";
         }
         try {
-            AgendamentoDto dto = api.toAgendamentoDto(form);
+            AgendamentoDto dto = agendamentoMontador.montarParaApi(form);
             if (form.getId() != null) {
                 api.atualizarAgendamento(form.getId(), dto);
-                redirectAttributes.addFlashAttribute("sucesso", "Agendamento atualizado.");
+                redirectAttributes.addFlashAttribute("sucesso", "Agendamento atualizado com sucesso.");
             } else {
                 api.criarAgendamento(dto);
-                redirectAttributes.addFlashAttribute("sucesso", "Agendamento criado.");
+                redirectAttributes.addFlashAttribute("sucesso", "Agendamento confirmado. Pagamento registrado.");
             }
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
@@ -143,9 +146,9 @@ public class HomeController {
             AgendamentoDto ag = api.buscarAgendamento(id);
             AgendamentoForm form = new AgendamentoForm();
             form.setId(ag.getId());
-            form.setData(ag.getData().toString().substring(0, 16));
-            form.setTipoServico(ag.getTipoServico());
+            form.setData(ag.getData().toLocalDate().toString());
             form.setPetId(ag.getPetId());
+            agendamentoMontador.preencherServicosNoForm(form, ag.getTipoServico());
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
         } catch (Exception ignored) {
             // Falhas de API não são exibidas na área do cliente
@@ -170,14 +173,26 @@ public class HomeController {
         return "redirect:/agendamentos";
     }
 
-    private String renderPaginaComApi(Model model, String secao) {
-        model.addAttribute("secao", secao);
-        prepararFormularios(model);
-        carregarListas(model);
-        if ("agendamentos".equals(secao)) {
-            model.addAttribute("servicosAgendamento", CatalogoServicos.nomesParaAgendamento());
+    private void validarAgendamentoCliente(AgendamentoForm form, BindingResult bindingResult) {
+        if (form.getServicosSelecionados() == null || form.getServicosSelecionados().isEmpty()) {
+            bindingResult.rejectValue("servicosSelecionados", "servicos.vazio",
+                    "Selecione ao menos um serviço");
         }
-        return "index";
+        if (form.getFormaPagamento() == null || form.getFormaPagamento().isBlank()) {
+            bindingResult.rejectValue("formaPagamento", "pagamento.obrigatorio",
+                    "Escolha a forma de pagamento");
+        }
+        if (form.getData() != null && !form.getData().isBlank()) {
+            try {
+                LocalDate data = LocalDate.parse(form.getData());
+                if (data.isBefore(LocalDate.now())) {
+                    bindingResult.rejectValue("data", "data.passado",
+                            "A data não pode ser anterior a hoje");
+                }
+            } catch (Exception ex) {
+                bindingResult.rejectValue("data", "data.invalida", "Data inválida");
+            }
+        }
     }
 
     private void prepararFormularios(Model model) {
@@ -189,7 +204,7 @@ public class HomeController {
         }
     }
 
-    private void carregarListas(Model model) {
+    private void carregarDadosAgendamentos(Model model) {
         try {
             List<PetDto> pets = api.listarPets();
             List<AgendamentoDto> agendamentos = api.listarAgendamentos();

@@ -177,15 +177,24 @@ public class GatewayApiClient {
         return dto;
     }
 
-    public AgendamentoDto toAgendamentoDto(AgendamentoForm form) {
+    public AgendamentoDto toAgendamentoDtoAdmin(AgendamentoForm form) {
         AgendamentoDto dto = new AgendamentoDto();
-        String dataHora = form.getData();
-        if (dataHora != null && dataHora.length() == 16) {
-            dataHora = dataHora + ":00";
-        }
-        dto.setData(LocalDateTime.parse(dataHora));
+        dto.setData(parseDataAgendamento(form.getData()));
         dto.setTipoServico(form.getTipoServico());
         dto.setPetId(form.getPetId());
         return dto;
+    }
+
+    private LocalDateTime parseDataAgendamento(String data) {
+        if (data == null || data.isBlank()) {
+            throw new IllegalArgumentException("Data inválida");
+        }
+        if (data.length() == 10) {
+            return java.time.LocalDate.parse(data).atStartOfDay();
+        }
+        if (data.length() == 16) {
+            return LocalDateTime.parse(data + ":00");
+        }
+        return LocalDateTime.parse(data);
     }
 }

@@ -6,10 +6,14 @@
   <div class="adm-nav-links">
     <a th:href="@{/admin}"
        th:classappend="${secao == 'painel'} ? ' active' : ''">Visão geral</a>
-    <a th:href="@{/admin/servicos}"
-       th:classappend="${secao == 'servicos'} ? ' active' : ''">Serviços</a>
+    <a th:href="@{/admin/pets}"
+       th:classappend="${secao == 'pets'} ? ' active' : ''">Pets</a>
+    <a th:href="@{/admin/catalogo}"
+       th:classappend="${secao == 'catalogo'} ? ' active' : ''">Catálogo</a>
     <a th:href="@{/admin/agendamentos}"
        th:classappend="${secao == 'agendamentos'} ? ' active' : ''">Agendamentos</a>
+    <a th:href="@{/admin/servicos}"
+       th:classappend="${secao == 'servicos'} ? ' active' : ''">Infraestrutura</a>
   </div>
   <div class="adm-nav-user">
     <form th:action="@{/logout}" method="post">
