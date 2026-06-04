@@ -1,5 +1,5 @@
 -- Rode DEPOIS do 01, já conectado ao banco petshop.
--- Ex.: psql -U postgre -d petshop -f database/02-tables.sql
+-- Ex.: psql -U postgres -d petshop -f database/02-tables.sql
 
 CREATE TABLE IF NOT EXISTS pets (
     id                  UUID PRIMARY KEY,

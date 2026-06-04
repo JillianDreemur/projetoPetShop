@@ -14,12 +14,10 @@ Projeto com Eureka, Gateway, microsserviços de **Pets** e **Agendamentos**, fro
 
 | Campo    | Valor    |
 |----------|----------|
-| Usuário  | `postgre`|
-| Senha    | `5555`   |
-| Banco    | `petshop`|
-| Porta    | `5432`   |
-
-> Se a conexão falhar, confira no pgAdmin/psql se o usuário não é `postgres` (padrão do instalador). Nesse caso, altere `username` nos arquivos `application.yml` dos microsserviços.
+| Usuário  | `postgres` |
+| Senha    | `5555`     |
+| Banco    | `petshop`  |
+| Porta    | `5432`     |
 
 ## 1. Banco de dados (automático no backend)
 

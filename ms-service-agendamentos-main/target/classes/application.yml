@@ -6,7 +6,7 @@ spring:
     name: service-agendamentos
   datasource:
     url: jdbc:postgresql://localhost:5432/petshop
-    username: postgre
+    username: postgres
     password: 5555
   jpa:
     hibernate:
