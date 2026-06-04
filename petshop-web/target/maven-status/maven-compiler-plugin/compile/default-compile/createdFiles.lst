@@ -1,9 +1,0 @@
-com\petshop\web\PetshopWebApplication.class
-com\petshop\web\config\GatewayProperties.class
-com\petshop\web\controller\HomeController.class
-com\petshop\web\dto\AgendamentoDto.class
-com\petshop\web\client\GatewayApiClient.class
-com\petshop\web\dto\AgendamentoForm.class
-com\petshop\web\dto\PetDto.class
-com\petshop\web\dto\PetForm.class
-com\petshop\web\config\WebConfig.class

@@ -143,12 +143,6 @@ public class HomeController {
         return "redirect:/";
     }
 
-    /** Mantém compatibilidade com URL antiga de exclusão. */
-    @PostMapping("/agendamentos/{id}/excluir")
-    public String excluirAgendamento(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        return cancelarAgendamento(id, redirectAttributes);
-    }
-
     private void prepararFormularios(Model model) {
         if (!model.containsAttribute("petForm")) {
             model.addAttribute("petForm", new PetForm());
@@ -165,7 +159,6 @@ public class HomeController {
             model.addAttribute("pets", pets);
             model.addAttribute("agendamentos", agendamentos);
             model.addAttribute("petNomes", mapaNomesPets(pets));
-            model.addAttribute("offline", null);
         } catch (Exception ex) {
             model.addAttribute("pets", List.of());
             model.addAttribute("agendamentos", List.of());
