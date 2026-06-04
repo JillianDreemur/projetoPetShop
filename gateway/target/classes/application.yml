@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: pets-route
+          uri: lb://SERVICE-PETS
+          predicates:
+            - Path=/pets/**
+        - id: agendamentos-route
+          uri: lb://SERVICE-AGENDAMENTOS
+          predicates:
+            - Path=/agendamentos/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true

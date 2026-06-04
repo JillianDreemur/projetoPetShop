@@ -1,0 +1,9 @@
+com\petshop\agendamentos\amqp\AgendamentoProducer.class
+com\petshop\agendamentos\entity\Agendamento.class
+com\petshop\agendamentos\service\AgendamentoService.class
+com\petshop\agendamentos\controller\AgendamentoController.class
+com\petshop\agendamentos\AgendamentoServiceApplication.class
+com\petshop\agendamentos\client\PetClient.class
+com\petshop\agendamentos\repository\AgendamentoRepository.class
+com\petshop\agendamentos\controller\GlobalExceptionHandler.class
+com\petshop\agendamentos\client\PetClient$PetResponse.class
