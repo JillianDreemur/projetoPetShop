@@ -118,15 +118,15 @@
       </div>
 
       <div class="form-box">
-        <span class="form-title"
-              th:text="${agendamentoForm.id != null} ? '✏️ Editar agendamento' : '📌 Novo agendamento'">Novo</span>
+        <span class="form-title">📌 Novo agendamento</span>
         <form id="form-agendamento" th:action="@{/agendamentos}" th:object="${agendamentoForm}" method="post">
           <th:block th:replace="~{fragments/csrf :: token}"/>
-          <input type="hidden" th:field="*{id}"/>
 
           <div class="field">
             <label for="ag-data">Data</label>
             <input id="ag-data" type="date" th:field="*{data}" th:attr="min=${dataMinima}" required/>
+            <p class="field-hint" th:text="'Banho/tosa: até ' + ${limiteBanhoTosa} + ' agendamentos por dia.'"></p>
+            <p class="field-error" id="aviso-vaga" hidden></p>
             <p class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></p>
           </div>
 
@@ -176,39 +176,37 @@
           </div>
 
           <div class="form-actions">
-            <button class="btn btn-teal" type="submit"
-                    th:text="${agendamentoForm.id != null} ? 'Salvar alterações' : 'Realizar pagamento'"
+            <button class="btn btn-teal" id="btn-pagamento" type="submit"
                     th:disabled="${pets == null or #lists.isEmpty(pets)}">Realizar pagamento</button>
-            <a class="btn btn-ghost nav-btn-secondary" th:if="${agendamentoForm.id != null}" th:href="@{/agendamentos/novo}">Cancelar</a>
-            <a class="btn btn-ghost nav-btn-secondary" th:if="${agendamentoForm.id == null}" th:href="@{/agendamentos/novo}">Limpar</a>
+            <a class="btn btn-ghost nav-btn-secondary" th:href="@{/agendamentos/novo}">Limpar</a>
           </div>
         </form>
       </div>
 
+      <h3 class="agendamentos-lista-titulo" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+        Seus agendamentos
+      </h3>
       <p class="empty" th:if="${agendamentos == null or #lists.isEmpty(agendamentos)}">
         <span class="empty-icon">📋</span> Nenhum agendamento ainda.
       </p>
-      <ul class="list" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
-        <li class="item" th:each="ag : ${agendamentos}">
-          <strong th:text="${ag.tipoServico}">Serviço</strong>
-          <p th:text="${#temporals.format(ag.data, 'dd/MM/yyyy')}">Data</p>
-          <p th:if="${ag.valorTotal != null}">
-            Total: <strong th:text="${#numbers.formatDecimal(ag.valorTotal, 1, 2, 'COMMA')}">0</strong>
+      <div class="agendamentos-row" th:if="${agendamentos != null and !#lists.isEmpty(agendamentos)}">
+        <article class="agendamento-card" th:each="ag : ${agendamentos}">
+          <time class="agendamento-data" th:text="${#temporals.format(ag.data, 'dd/MM/yyyy')}">Data</time>
+          <strong class="agendamento-servicos" th:text="${ag.tipoServico}">Serviço</strong>
+          <p class="agendamento-pet">
+            Pet: <span th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">—</span>
           </p>
-          <p>Pet: <strong th:text="${petNomes != null and petNomes[ag.petId] != null} ? ${petNomes[ag.petId]} : '—'">—</strong></p>
-          <div class="item-actions">
-            <a class="btn btn-ghost nav-btn-secondary" th:href="@{/agendamentos/{id}/editar(id=${ag.id})}">Editar</a>
-            <form th:action="@{/agendamentos/{id}/cancelar(id=${ag.id})}" method="post"
-                  onsubmit="return confirm('Cancelar agendamento?');">
-              <th:block th:replace="~{fragments/csrf :: token}"/>
-              <button class="btn btn-danger" type="submit">Cancelar</button>
-            </form>
-          </div>
-        </li>
-      </ul>
+          <p class="agendamento-total" th:if="${ag.valorTotal != null}"
+             th:text="'Total: R$ ' + ${#numbers.formatDecimal(ag.valorTotal, 1, 2, 'COMMA')}">Total</p>
+        </article>
+      </div>
     </article>
   </section>
 </div>
+<script th:if="${secao == 'agendamentos'}" th:inline="javascript">
+  window.OCUPACAO_BANHO_TOSA = /*[[${ocupacaoBanhoTosaJson}]]*/ {};
+  window.LIMITE_BANHO_TOSA = /*[[${limiteBanhoTosa}]]*/ 3;
+</script>
 <script th:if="${secao == 'agendamentos'}" th:src="@{/js/agendamento.js}"></script>
 </body>
 </html>

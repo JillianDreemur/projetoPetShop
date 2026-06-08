@@ -1,14 +1,19 @@
 package com.petshop.web.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petshop.web.client.GatewayApiClient;
 import com.petshop.web.dto.AgendamentoDto;
 import com.petshop.web.dto.AgendamentoForm;
 import com.petshop.web.dto.PetDto;
 import com.petshop.web.dto.PetForm;
+import com.petshop.web.entity.ServicoOferecido;
 import com.petshop.web.service.AgendamentoMontador;
 import com.petshop.web.service.ServicoCatalogoService;
+import com.petshop.web.service.VagaBanhoTosaService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +34,18 @@ public class HomeController {
     private final GatewayApiClient api;
     private final ServicoCatalogoService catalogo;
     private final AgendamentoMontador agendamentoMontador;
+    private final VagaBanhoTosaService vagaBanhoTosa;
+    private final ObjectMapper objectMapper;
 
     public HomeController(GatewayApiClient api, ServicoCatalogoService catalogo,
-                          AgendamentoMontador agendamentoMontador) {
+                          AgendamentoMontador agendamentoMontador,
+                          VagaBanhoTosaService vagaBanhoTosa,
+                          ObjectMapper objectMapper) {
         this.api = api;
         this.catalogo = catalogo;
         this.agendamentoMontador = agendamentoMontador;
+        this.vagaBanhoTosa = vagaBanhoTosa;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping({"/", "/inicio"})
@@ -56,6 +67,7 @@ public class HomeController {
         model.addAttribute("secao", "agendamentos");
         model.addAttribute("catalogoServicos", catalogo.listarParaExibicao());
         model.addAttribute("dataMinima", LocalDate.now().toString());
+        model.addAttribute("limiteBanhoTosa", VagaBanhoTosaService.LIMITE_DIARIO);
         prepararFormularios(model);
         carregarDadosAgendamentos(model);
         return "index";
@@ -115,43 +127,24 @@ public class HomeController {
                                     BindingResult bindingResult,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
-        validarAgendamentoCliente(form, bindingResult);
+        List<AgendamentoDto> existentes = listarAgendamentosOrdenados();
+        validarAgendamentoCliente(form, bindingResult, existentes);
         if (bindingResult.hasErrors()) {
             model.addAttribute("secao", "agendamentos");
             model.addAttribute("catalogoServicos", catalogo.listarParaExibicao());
             model.addAttribute("dataMinima", LocalDate.now().toString());
+            model.addAttribute("limiteBanhoTosa", VagaBanhoTosaService.LIMITE_DIARIO);
             prepararFormularios(model);
-            carregarDadosAgendamentos(model);
+            carregarDadosAgendamentos(model, existentes);
             return "index";
         }
         try {
             AgendamentoDto dto = agendamentoMontador.montarParaApi(form);
-            if (form.getId() != null) {
-                api.atualizarAgendamento(form.getId(), dto);
-                redirectAttributes.addFlashAttribute("sucesso", "Agendamento atualizado com sucesso.");
-            } else {
-                api.criarAgendamento(dto);
-                redirectAttributes.addFlashAttribute("sucesso", "Agendamento confirmado. Pagamento registrado.");
-            }
+            api.criarAgendamento(dto);
+            redirectAttributes.addFlashAttribute("sucesso", "Agendamento confirmado. Pagamento registrado.");
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("agendamentoForm", form);
             redirectAttributes.addFlashAttribute("aviso", api.mensagemOperacaoCliente(ex));
-        }
-        return "redirect:/agendamentos";
-    }
-
-    @GetMapping("/agendamentos/{id}/editar")
-    public String editarAgendamento(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        try {
-            AgendamentoDto ag = api.buscarAgendamento(id);
-            AgendamentoForm form = new AgendamentoForm();
-            form.setId(ag.getId());
-            form.setData(ag.getData().toLocalDate().toString());
-            form.setPetId(ag.getPetId());
-            agendamentoMontador.preencherServicosNoForm(form, ag.getTipoServico());
-            redirectAttributes.addFlashAttribute("agendamentoForm", form);
-        } catch (Exception ignored) {
-            // Falhas de API não são exibidas na área do cliente
         }
         return "redirect:/agendamentos";
     }
@@ -162,18 +155,8 @@ public class HomeController {
         return "redirect:/agendamentos";
     }
 
-    @PostMapping("/agendamentos/{id}/cancelar")
-    public String cancelarAgendamento(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        try {
-            api.excluirAgendamento(id);
-            redirectAttributes.addFlashAttribute("sucesso", "Agendamento cancelado.");
-        } catch (Exception ignored) {
-            // Falhas de API não são exibidas na área do cliente
-        }
-        return "redirect:/agendamentos";
-    }
-
-    private void validarAgendamentoCliente(AgendamentoForm form, BindingResult bindingResult) {
+    private void validarAgendamentoCliente(AgendamentoForm form, BindingResult bindingResult,
+                                           List<AgendamentoDto> existentes) {
         if (form.getServicosSelecionados() == null || form.getServicosSelecionados().isEmpty()) {
             bindingResult.rejectValue("servicosSelecionados", "servicos.vazio",
                     "Selecione ao menos um serviço");
@@ -182,15 +165,26 @@ public class HomeController {
             bindingResult.rejectValue("formaPagamento", "pagamento.obrigatorio",
                     "Escolha a forma de pagamento");
         }
+        LocalDate data = null;
         if (form.getData() != null && !form.getData().isBlank()) {
             try {
-                LocalDate data = LocalDate.parse(form.getData());
+                data = LocalDate.parse(form.getData());
                 if (data.isBefore(LocalDate.now())) {
                     bindingResult.rejectValue("data", "data.passado",
                             "A data não pode ser anterior a hoje");
                 }
             } catch (Exception ex) {
                 bindingResult.rejectValue("data", "data.invalida", "Data inválida");
+            }
+        }
+
+        if (data != null && !bindingResult.hasFieldErrors("data")
+                && form.getServicosSelecionados() != null && !form.getServicosSelecionados().isEmpty()) {
+            List<ServicoOferecido> selecionados = catalogo.buscarPorIds(form.getServicosSelecionados());
+            if (vagaBanhoTosa.selecaoIncluiBanhoTosa(selecionados)
+                    && vagaBanhoTosa.diaCheio(data, existentes, null)) {
+                bindingResult.rejectValue("data", "data.cheio",
+                        vagaBanhoTosa.mensagemDiaCheio(data, existentes, null));
             }
         }
     }
@@ -205,16 +199,39 @@ public class HomeController {
     }
 
     private void carregarDadosAgendamentos(Model model) {
+        carregarDadosAgendamentos(model, listarAgendamentosOrdenados());
+    }
+
+    private void carregarDadosAgendamentos(Model model, List<AgendamentoDto> agendamentos) {
         try {
             List<PetDto> pets = api.listarPets();
-            List<AgendamentoDto> agendamentos = api.listarAgendamentos();
             model.addAttribute("pets", pets);
             model.addAttribute("agendamentos", agendamentos);
             model.addAttribute("petNomes", mapaNomesPets(pets));
+            model.addAttribute("ocupacaoBanhoTosaJson", serializarOcupacao(agendamentos));
         } catch (Exception ignored) {
             model.addAttribute("pets", List.of());
             model.addAttribute("agendamentos", List.of());
             model.addAttribute("petNomes", Map.of());
+            model.addAttribute("ocupacaoBanhoTosaJson", "{}");
+        }
+    }
+
+    private List<AgendamentoDto> listarAgendamentosOrdenados() {
+        try {
+            return api.listarAgendamentos().stream()
+                    .sorted(Comparator.comparing(AgendamentoDto::getData))
+                    .toList();
+        } catch (Exception ex) {
+            return List.of();
+        }
+    }
+
+    private String serializarOcupacao(List<AgendamentoDto> agendamentos) {
+        try {
+            return objectMapper.writeValueAsString(vagaBanhoTosa.mapaOcupacaoPorData(agendamentos));
+        } catch (JsonProcessingException ex) {
+            return "{}";
         }
     }
 
